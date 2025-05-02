@@ -13,7 +13,6 @@ const Register = () => {
             aria-hidden
             src={image}
             alt="Globe icon"
-            layout="intrinsic" // Ensures the image stays responsive
         />
       </div>
       <div className="register-form">
