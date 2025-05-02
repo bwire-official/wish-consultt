@@ -1,8 +1,8 @@
 "use client"; 
 import Image from "next/image";
 import { FaArrowLeft } from "react-icons/fa";
-import React from 'react';
-import image from '../Assets/istockphoto-2147587863-612x612.jpg'
+import React from "react";
+import image from "../Assets/istockphoto-2147587863-612x612.jpg"
 import Link from "next/link";
 
 const Register = () => {
@@ -16,7 +16,7 @@ const Register = () => {
         />
       </div>
       <div className="register-form">
-        <h4><Link href='/'><FaArrowLeft className="b-i"/></Link></h4>
+        <h4><Link href="/"><FaArrowLeft className="b-i"/></Link></h4>
         <h2>Create Account</h2>
         <form>
           <input type="text" placeholder="Full Name" required />
