@@ -16,16 +16,14 @@ const Login = () => {
         />
       </div>
       <div className="register-form">
-
-      <h4><Link href="/"><FaArrowLeft className="b-i"/></Link></h4>
-
+        <h4><Link href="/"><FaArrowLeft className="b-i"/></Link></h4>
         <h2>Welcome Back</h2>
         <form>
           <input type="email" placeholder="Email Address" required />
           <input type="password" placeholder="Password" required />
           <button type="submit">Register</button>
         </form>
-        <p>Don't have an account? <a href="/register">Sign Up</a></p>
+        <p>Don&apos;t have an account? <a href="/register">Sign Up</a></p> {/* Escape single quote here */}
       </div>
     </div>
   );
