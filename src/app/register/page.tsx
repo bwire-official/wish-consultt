@@ -5,10 +5,10 @@ import React from "react";
 import image from "../Assets/istockphoto-2147587863-612x612.jpg";
 import Link from "next/link";
 
-const Login = () => {
+const Register = () => {
   return (
-    <div className="login-container">
-      <div className="login-image">
+    <div className="register-container">
+      <div className="register-image">
         <Image
             aria-hidden
             src={image}
@@ -16,18 +16,20 @@ const Login = () => {
             layout="intrinsic" // Ensures the image stays responsive
         />
       </div>
-      <div className="login-form">
+      <div className="register-form">
         <h4><Link href="/"><FaArrowLeft className="b-i" /></Link></h4>
-        <h2>Welcome Back</h2>
+        <h2>Create Account</h2>
         <form>
+          <input type="text" placeholder="Full Name" required />
           <input type="email" placeholder="Email Address" required />
           <input type="password" placeholder="Password" required />
-          <button type="submit">Login</button>
+          <input type="password" placeholder="Confirm Password" required />
+          <button type="submit">Register</button>
         </form>
-        <p>Don't have an account? <a href="/register">Sign Up</a></p>
+        <p>Already have an account? <a href="/login">Login</a></p>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default Register;
