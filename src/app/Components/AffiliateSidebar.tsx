@@ -3,11 +3,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   FaTachometerAlt,
-  FaUsers,
   FaCog,
   FaSignOutAlt,
 } from "react-icons/fa";
-import { FaBook } from "react-icons/fa6";
 import { GiProgression } from "react-icons/gi";
 import { MdOutlineRateReview } from "react-icons/md";
 import { VscReferences } from "react-icons/vsc";

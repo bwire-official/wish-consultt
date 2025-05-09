@@ -75,9 +75,7 @@
   height: 250px;
   object-fit: cover;
 }
-.affiliate-dashboard {
-  /* padding: 2rem; */
-}
+
 
 @media (max-width: 768px){
   .affiliate-dashboard {
