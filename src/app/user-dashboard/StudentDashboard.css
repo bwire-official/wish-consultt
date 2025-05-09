@@ -1,0 +1,156 @@
+.student-dashboard {
+    padding:0 0 2rem 0;
+    font-family: "Segoe UI", sans-serif;
+    background-color: #f5f7fa;
+    min-height: 100vh;
+  }
+  @media (max-width: 768px){
+    .student-dashboard {
+      margin-top: 14rem;
+    }
+  }
+  .student-header{
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    /* padding: 12px 0; */
+    border: none;
+    display: flex;
+    align-items: center;
+  }
+  .student-header .s-div{
+    width: 95%;
+    margin: auto;
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .student-header .s-div .prof{
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .student-header .s-div .prof img{
+    width: 35px;
+    height: 35px;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  .student-header h6 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #2c3e50;
+  }
+  
+  .student-header p {
+    color: #7f8c8d;
+    font-size: 14px;
+  }
+
+  .welcome-card{
+    width: 95%;
+    margin: auto;
+    margin-top: 30px;
+    background-color:#141212 ;
+    color: #fff;
+    border-radius: 20px;
+    padding: 20px 0;
+  }
+
+  .welcome-card .wc{
+    width: 90%;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .welcome-card .wc div{
+    width: 55%;
+  }
+
+  .welcome-card .wc div p{
+    color: #7f8c8d;
+    font-size: 19px;
+    letter-spacing: .4px;
+  }
+
+  .welcome-card .wc div h4{
+    font-size: 28px;
+    letter-spacing: .4px;
+    margin-top: 50px;
+    margin-bottom: 12px;
+  }
+  .welcome-card .wc img{
+    width: 45%;
+    height: 250px;
+    object-fit: cover;
+  }
+  .dashboard-grid {
+    width: 95%;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  
+  .dashboard-card {
+    background: #ffffff;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .dashboard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+  }
+  
+  .dashboard-card h3 {
+    margin-bottom: 0.5rem;
+    color: #34495e;
+  }
+  
+  .dashboard-card p {
+    font-size: 1.1rem;
+    color: #2c3e50;
+  }
+  
+  .announcements {
+    width: 95%;
+    margin: auto;
+    margin-top: 3rem;
+  }
+  
+  .announcements h2 {
+    margin-bottom: 1rem;
+    color: #2c3e50;
+  }
+  
+  .announcements ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .announcements li {
+    background: #fff;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border-left: 4px solid #e1564c;
+    border-radius: 5px;
+    color: #34495e;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .student-header h1 {
+      font-size: 1.5rem;
+    }
+  
+    .dashboard-card {
+      padding: 1rem;
+    }
+  }
+  

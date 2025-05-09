@@ -667,6 +667,52 @@ button{
   }
 } */
 
+
+.dashboard {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 240px;
+  background-color: #1a1a2e;
+  color: #fff;
+  padding: 20px;
+}
+
+.sidebar h2 {
+  margin-bottom: 2rem;
+  font-size: 24px;
+  text-align: center;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  margin: 20px 0;
+}
+
+.sidebar ul li a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.sidebar ul li a:hover {
+  color: #e94560;
+}
+
+.main {
+  flex: 1;
+  padding: 40px;
+  background-color: #f5f5f5;
+}
+
+
 /* Responsive Styles */
 @media screen and (max-width: 900px) {
   .register-container {
@@ -813,5 +859,15 @@ button{
   }
   .home-top .hero div h2{
     font-size: 24px;
+  }
+  .home-top .hero img{
+    height: 250px;
+    object-fit: cover;
+  }
+  .successes .success h3{
+    font-size: 26px;
+  }
+  .faqs-heading{
+    font-size: 1.5rem;
   }
 }
