@@ -26,11 +26,11 @@
   .admin-header h1 {
     font-size: 30px;
     font-weight: 500;
-    color: #2c3e50;
+    color: #fff;
   }
   
   .admin-header p {
-    color: #7f8c8d;
+    color: #fff;
   }
 
   .welcome-card{
@@ -85,7 +85,7 @@
   .admin-card {
     background: #ffffff;
     padding: 1.5rem;
-    border-left: 5px solid #e1564c;
+    border-left: 5px solid #167395;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -127,7 +127,7 @@
     background: #fff;
     padding: 1rem;
     margin-bottom: 0.75rem;
-    border-left: 4px solid #e1564c;
+    border-left: 4px solid #167395;
     border-radius: 5px;
     color: #34495e;
   }

@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { FaArrowLeft } from "react-icons/fa";
 import React from "react";
-import image from "../Assets/istockphoto-2147587863-612x612.jpg";
+import image from "../Assets/m5.jpg";
 import Link from "next/link";
 
 const Register = () => {

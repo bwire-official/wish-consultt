@@ -19,10 +19,8 @@ const Sidebar = () => {
   const links = [
     { href: "/user-dashboard", label: "Home", icon: <FaTachometerAlt /> },
     { href: "/user-dashboard/course", label: "Course", icon: <FaBook /> },
-    { href: "/user-dashboard/help", label: "AI Help", icon: <FaHeadSideVirus /> },
-    { href: "/user-dashboard/feedback", label: "Feedback", icon: <LuNotebookPen /> },
+    // { href: "/user-dashboard/feedback", label: "Feedback", icon: <LuNotebookPen /> },
     { href: "/user-dashboard/profile", label: "Profile", icon: <FaUser /> },
-    { href: "/user-dashboard/setting", label: "Settings", icon: <FaCog /> },
     { href: "/", label: "Logout", icon: <FaSignOutAlt /> },
   ];
 

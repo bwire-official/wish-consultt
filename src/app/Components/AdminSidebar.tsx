@@ -19,7 +19,7 @@ const AdminSidebar = () => {
   const links = [
     { href: "/admin-dashboard", label: "Home", icon: <FaTachometerAlt /> },
     { href: "/admin-dashboard/users", label: "Users", icon: <FaUsers /> },
-    { href: "/admin-dashboard/course", label: "Course", icon: <FaBook /> },
+    { href: "/admin-dashboard/course", label: "Courses", icon: <FaBook /> },
     { href: "/admin-dashboard/progress", label: "Progress", icon: <GiProgression /> },
     { href: "/admin-dashboard/feedbacks", label: "Feedback", icon: <MdOutlineRateReview /> },
     { href: "/admin-dashboard/requests", label: "Requests", icon: <LuMessageSquareQuote /> },
@@ -30,7 +30,7 @@ const AdminSidebar = () => {
 
   return (
     <aside className={styles.sidebar}>
-      <h2>Admin</h2>
+      {/* <h2>Admin</h2> */}
       <ul>
         {links.map(({ href, label, icon }) => (
           <li key={href}>

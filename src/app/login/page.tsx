@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import image from "../Assets/istockphoto-2147587863-612x612.jpg"
+import image from "../Assets/m1.jpg"
 import { FaArrowLeft } from "react-icons/fa";
 
 const Login = () => {
@@ -21,7 +21,7 @@ const Login = () => {
         <form>
           <input type="email" placeholder="Email Address" required />
           <input type="password" placeholder="Password" required />
-          <button type="submit">Register</button>
+          <button type="submit">Login</button>
         </form>
         <p>Don&apos;t have an account? <a href="/register">Sign Up</a></p> {/* Escape single quote here */}
       </div>

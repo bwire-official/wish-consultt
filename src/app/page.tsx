@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Header from './Components/Header'
 import Link from "next/link";
-import image from './Assets/hero.png'
+import image from './Assets/m9-removebg-preview.png'
 import About from './Components/About'
 import Success from './Components/Success'
 import Faqs from './Components/Faqs'
@@ -19,7 +19,7 @@ export default function Home() {
           <div>
             <h2>Unlock premium, AI-powered learning with <span>Wish Consult.</span></h2>
             <p>Where your progress is personalized, your knowledge is guided.</p>
-            <Link href=''><button className="gradient-button">Start Now</button></Link>
+            <Link href='/login'><button className="gradient-button">Get Started</button></Link>
           </div>
 
           <Image
@@ -36,17 +36,17 @@ export default function Home() {
           <div className="ext">
             <div>
               <h3>10K</h3>
-              <p>Views</p>
+              <p>Healthcare Professionals</p>
             </div>
 
             <div>
               <h3>100</h3>
-              <p>Students</p>
+              <p>Enrolled Medical</p>
             </div>
 
             <div>
               <h3>40</h3>
-              <p>Certificates</p>
+              <p>Certified Healthcare Facilities</p>
             </div>
 
           </div>
@@ -54,7 +54,7 @@ export default function Home() {
 
       <About/>
       <Success/>
-      <Faqs/>
+      {/* <Faqs/> */}
       <Footer/>
 
 

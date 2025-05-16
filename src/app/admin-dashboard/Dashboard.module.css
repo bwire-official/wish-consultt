@@ -71,7 +71,7 @@
 }
 
 .sidebar a.active {
-  background-color: #e1564c;
+  background-color: #167395;
   color: white;
 }
 
@@ -98,3 +98,105 @@
     margin: 0.5rem 0;
   }
 }
+
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+
+.container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background-color: #f9fafb;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.title {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #1f2937;
+  text-align: center;
+}
+
+.searchBar {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.userTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.userTable th,
+.userTable td {
+  text-align: left;
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.userTable th {
+  background-color: #f1f5f9;
+  font-weight: 600;
+  color: #374151;
+  text-align: left;
+}
+
+.status {
+  padding: 0.3rem 0.6rem;
+  border-radius: 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.active {
+  color: #065f46;
+}
+
+.inactive {
+  color: #991b1b;
+}
+
+.deactivateBtn {
+  background-color: #167395;
+  color: white;
+  border: none;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.deactivateBtn:hover {
+  background-color: #167395;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .userTable th, .userTable td {
+    font-size: 0.85rem;
+    padding: 0.6rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+}
+
+

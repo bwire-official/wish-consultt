@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import logo from '../Assets/logo.png';
+import logo from '../Assets/logos.png';
 import Image from 'next/image';
 import Link from "next/link";
 
@@ -28,9 +28,7 @@ const Header = () => {
           <span className={`bar ${isMenuOpen ? 'rotate' : ''}`}></span>
         </div>
         <ul className={isMenuOpen ? "open" : ""}>
-          <li><a href="#home">Home</a></li>
-          <li><a href="#about">About Us</a></li>
-          <li><a href="#faq">FAQs</a></li>
+
           <li><Link href='/register'>Sign Up</Link></li>
           <li className='sign'><Link href='/login'>Signin</Link></li>
         </ul>
