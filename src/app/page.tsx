@@ -6,7 +6,6 @@ import Link from "next/link";
 import image from './Assets/m9-removebg-preview.png'
 import About from './Components/About'
 import Success from './Components/Success'
-import Faqs from './Components/Faqs'
 import Footer from './Components/Footer'
 
 export default function Home() {
@@ -54,7 +53,6 @@ export default function Home() {
 
       <About/>
       <Success/>
-      {/* <Faqs/> */}
       <Footer/>
 
 

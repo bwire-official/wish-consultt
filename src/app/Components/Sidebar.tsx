@@ -4,12 +4,9 @@ import { usePathname } from "next/navigation";
 import {
   FaTachometerAlt,
   FaUser,
-  FaCog,
   FaBook,
   FaSignOutAlt,
 } from "react-icons/fa";
-import { FaHeadSideVirus } from "react-icons/fa6";
-import { LuNotebookPen } from "react-icons/lu";
 
 import styles from "../user-dashboard/Dashboard.module.css";
 
