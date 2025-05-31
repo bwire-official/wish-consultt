@@ -1,22 +1,12 @@
 import React from 'react';
 import styles from '../Dashboard.module.css';
 import Image from 'next/image';
-import img from '../../Assets/c-img.jpeg'
 import Link from "next/link";
 import dp from '../../Assets/dp.webp'
 import "../StudentDashboard.css";
-import img1 from '../../Assets/padlock.avif'
 import { FaBook } from "react-icons/fa";
 import { IoSearchOutline } from "react-icons/io5";
 
-
-const segments = [
-  { title: 'Intro to Infection Control', completed: true },
-  { title: 'PPE & Hygiene Protocols', completed: true },
-  { title: 'Waste Disposal & Safety', completed: false },
-  { title: 'Emergency Response', completed: false },
-  { title: 'Final Assessment', completed: false },
-];
 
 const CourseScreen = () => {
   return (
@@ -91,7 +81,7 @@ const CourseScreen = () => {
             <div className={styles.etop}>
               <div className={styles.ecc}>
                 <h1>2</h1>
-                <h3>Beginner's Guide</h3>
+                <h3>Beginer&apos;s Guide</h3>
               </div>
             </div>
             <div className={styles.ep}>

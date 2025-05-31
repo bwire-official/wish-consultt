@@ -2,13 +2,7 @@
 import React, { useState } from 'react';
 import styles from '../Dashboard.module.css';
 import Image from 'next/image';
-import img from '../../Assets/c-img.jpeg';
-import Link from 'next/link';
-import dp from '../../Assets/dp.webp';
 import "../StudentDashboard.css";
-import { FaBook } from "react-icons/fa";
-import { IoSearchOutline } from "react-icons/io5";
-import { RiBookOpenLine } from "react-icons/ri";
 import img1 from '../../Assets/padlock.avif'
 
 
@@ -48,7 +42,6 @@ const initialSegments = [
     };
   
     const completedCount = segments.filter(s => s.completed).length;
-    const progress = Math.round((completedCount / segments.length) * 100);
   
     return (
       <div className="student-dashboard">

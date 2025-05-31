@@ -2,12 +2,9 @@
 import React, { useState } from 'react';
 import styles from '../Dashboard.module.css';
 import Image from 'next/image';
-import img from '../../Assets/c-img.jpeg';
 import Link from 'next/link';
 import dp from '../../Assets/dp.webp';
 import "../StudentDashboard.css";
-import { FaBook } from "react-icons/fa";
-import { IoSearchOutline } from "react-icons/io5";
 import { RiBookOpenLine } from "react-icons/ri";
 
 
@@ -22,33 +19,8 @@ const initialSegments = [
 const LessonScreen = () => {
   const [segments, setSegments] = useState(initialSegments);
   const currentIndex = segments.findIndex(seg => !seg.completed);
-  const [activeIndex, setActiveIndex] = useState(currentIndex === -1 ? 0 : currentIndex);
-  const [feedback, setFeedback] = useState("");
 
-  const handleModuleClick = (index: number) => {
-    if (segments[index].completed || index === activeIndex) {
-      setActiveIndex(index);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (!feedback.trim()) return alert("Please enter feedback.");
-
-    const updated = [...segments];
-    updated[activeIndex].completed = true;
-
-    // Unlock next segment if available
-    if (activeIndex + 1 < updated.length) {
-      setActiveIndex(activeIndex + 1);
-    }
-
-    setSegments(updated);
-    setFeedback("");
-  };
-
-  const completedCount = segments.filter(s => s.completed).length;
-  const progress = Math.round((completedCount / segments.length) * 100);
-
+ 
   return (
   
 <div className="student-dashboard">
@@ -123,7 +95,7 @@ const LessonScreen = () => {
           <div className={styles.etop}>
             <div className={styles.ecc}>
               <h1><RiBookOpenLine /></h1>
-              <h3>Beginner's Guide</h3>
+              <h3>Beginner&apos;s Guide</h3>
             </div>
           </div>
           <div className={styles.ep}>

@@ -10,7 +10,6 @@ import {
 import { FaBook } from "react-icons/fa6";
 import { GiProgression } from "react-icons/gi";
 import { MdOutlineRateReview } from "react-icons/md";
-import { LuMessageSquareQuote } from "react-icons/lu";
 import styles from "../user-dashboard/Dashboard.module.css";
 
 const AdminSidebar = () => {
