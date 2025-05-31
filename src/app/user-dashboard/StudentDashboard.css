@@ -39,7 +39,7 @@
     font-size: 15px;
     font-weight: 600;
     margin-bottom: 0.25rem;
-    color: #2c3e50;
+    color: #fff !important;
   }
   
   .student-header p {
@@ -142,6 +142,42 @@
     border-radius: 5px;
     color: #34495e;
   }
+
+
+  .contentLayout {
+    display: flex;
+    gap: 2rem;
+    
+  }
+  
+  .sidebar {
+    width: 220px;
+    background: #f8f8f8;
+    padding: 1rem;
+    border-radius: 8px;
+  }
+  
+  .moduleList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .moduleItem {
+    padding: 0.5rem;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .activeModule {
+    font-weight: bold;
+    color: #0070f3;
+  }
+  
+  
   
   /* Responsive adjustments */
   @media (max-width: 768px) {

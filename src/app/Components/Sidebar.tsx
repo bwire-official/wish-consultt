@@ -15,7 +15,7 @@ const Sidebar = () => {
 
   const links = [
     { href: "/user-dashboard", label: "Home", icon: <FaTachometerAlt /> },
-    { href: "/user-dashboard/course", label: "Course", icon: <FaBook /> },
+    { href: "/user-dashboard/course", label: "Courses", icon: <FaBook /> },
     // { href: "/user-dashboard/feedback", label: "Feedback", icon: <LuNotebookPen /> },
     { href: "/user-dashboard/profile", label: "Profile", icon: <FaUser /> },
     { href: "/", label: "Logout", icon: <FaSignOutAlt /> },

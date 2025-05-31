@@ -15,7 +15,7 @@ const StudentDashboard = () => {
           <div className="prof">
             <Image src={dp} alt="" />
             <div>
-              <h6>Sam O</h6>
+              <h6 style={{color:'#fff'}}>Sam O</h6>
               <p>sam@gmail.com</p>
             </div>
           </div>

@@ -16,12 +16,12 @@ const AffiliateSidebar = () => {
   const pathname = usePathname();
 
   const links = [
-    { href: "/admin-dashboard", label: "Home", icon: <FaTachometerAlt /> },
-    { href: "/admin-dashboard/referral-link", label: "Referral Link", icon: <VscReferences /> },
-    { href: "/admin-dashboard/referral-track", label: "Referral Tracking", icon: <GiProgression /> },
-    { href: "/admin-dashboard/earnings", label: "Earnings", icon: <CiMoneyBill  /> },
-    { href: "/admin-dashboard/payout", label: "Payout Request", icon: <MdOutlineRateReview /> },
-    { href: "/admin-dashboard/setting", label: "Settings", icon: <FaCog /> },
+    { href: "/affiliate", label: "Home", icon: <FaTachometerAlt /> },
+    { href: "/affiliate/referral", label: "Referral Link", icon: <VscReferences /> },
+    { href: "/affiliate/affiliate-performance", label: "Performance", icon: <GiProgression /> },
+    { href: "/affiliate/earnings", label: "Earnings", icon: <CiMoneyBill  /> },
+    { href: "/affiliate/payout-request", label: "Payout Request", icon: <MdOutlineRateReview /> },
+    { href: "/affiliate/settings", label: "Settings", icon: <FaCog /> },
     { href: "/", label: "Logout", icon: <FaSignOutAlt /> },
   ];
 

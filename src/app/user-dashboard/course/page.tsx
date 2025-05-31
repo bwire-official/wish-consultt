@@ -1,5 +1,14 @@
 import React from 'react';
 import styles from '../Dashboard.module.css';
+import Image from 'next/image';
+import img from '../../Assets/c-img.jpeg'
+import Link from "next/link";
+import dp from '../../Assets/dp.webp'
+import "../StudentDashboard.css";
+import img1 from '../../Assets/padlock.avif'
+import { FaBook } from "react-icons/fa";
+import { IoSearchOutline } from "react-icons/io5";
+
 
 const segments = [
   { title: 'Intro to Infection Control', completed: true },
@@ -11,55 +20,140 @@ const segments = [
 
 const CourseScreen = () => {
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <h1>Course: Infection Control in Healthcare Facilities</h1>
-        <div className={styles.progressContainer}>
-          <div className={styles.progressTrack}>
-            <div
-              className={styles.progressFill}
-              style={{ width: '40%' }}
-            ></div>
+  <div className="student-dashboard">
+
+      <header className="student-header">
+        <div className="s-div">
+         
+          <div className="prof">
+            <Image src={dp} alt="" />
+            <div>
+              <h6 style={{color:'#fff'}}>Sam O</h6>
+              <p>sam@gmail.com</p>
+            </div>
           </div>
-          <span className={styles.progressText}>40% Completed</span>
+
         </div>
       </header>
-
-      <section className={styles.segmentList}>
-        {segments.map((segment, index) => (
+      
+      <div className={styles.progressContainer}>
+        <div className={styles.progressText}>
+          1 of 4 courses completed
+        </div>
+        <div className={styles.progressTrack}>
           <div
-            key={index}
-            className={`${styles.segment} ${segment.completed ? styles.completed : styles.locked}`}
-          >
-            <h3>{segment.title}</h3>
-            {segment.completed ? <span className={styles.status}>✓ Completed</span> : <span className={styles.status}>🔒 Locked</span>}
+            className={styles.progressFilled}
+            style={{ width: '25%' }}
+          />
+        </div>
+      </div>
+
+
+    <div className={styles.container}>
+      
+
+      <div className={styles.courses}>
+        <div className={styles.title}>
+          <div className={styles.name}>
+            <FaBook className={styles.ficon}/>
+            <h2>COURSES</h2>
           </div>
-        ))}
-      </section>
 
-      <section className={styles.videoSection}>
-        <h2>Current Segment: PPE & Hygiene Protocols</h2>
-        <video className={styles.video} controls>
-          <source src="/videos/ppe-hygiene.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-        <a href="/pdfs/ppe-hygiene.pdf" className={styles.download} download>
-          📄 Download PDF Notes
-        </a>
-      </section>
+          <div className={styles.searchdiv}>
+            <IoSearchOutline className={styles.sicon}/>
+            <input type="search" placeholder='search...'/>
+          </div>
+        </div>
+        
 
-      <section className={styles.feedback}>
-        <h3>Feedback</h3>
-        <textarea placeholder="Write your feedback..." className={styles.textarea}></textarea>
-        <button className={styles.submitBtn}>Submit & Unlock Next Segment</button>
-      </section>
+        <div className={styles.coursesgroup}>
 
-      <aside className={styles.aiAssistant}>
-        <h4>Ask Claude AI</h4>
-        <textarea placeholder="Ask a question..." className={styles.textarea}></textarea>
-        <button className={styles.askBtn}>Ask</button>
-      </aside>
+          <div className={styles.eachcourse}>
+            <div className={styles.etop}>
+              <div className={styles.ecc}>
+                <h1>1</h1>
+                <h3>Introduction</h3>
+              </div>
+            </div>
+            <div className={styles.ep}>
+              <p>Learn the basics of using PPE and maintaining hygiene to ensure a safe, clean, and compliant work environment.</p>
+            </div>
+
+            <div className={styles.eaction}>
+              <Link href='/user-dashboard/lesson' className={styles.eac}>
+                <button>Start course</button>
+              </Link>
+              <p>4 lessons</p>
+            </div>
+          </div>
+
+          <div className={styles.eachcourse}>
+            <div className={styles.etop}>
+              <div className={styles.ecc}>
+                <h1>2</h1>
+                <h3>Beginner's Guide</h3>
+              </div>
+            </div>
+            <div className={styles.ep}>
+              <p>Learn the basics of using PPE and maintaining hygiene to ensure a safe, clean, and compliant work environment.</p>
+            </div>
+
+            <div className={styles.eaction}>
+              <Link href='' className={styles.eac}>
+                <button className={styles.locked}>Locked</button>
+              </Link>
+              <p>4 lessons</p>
+            </div>
+          </div>
+
+          <div className={styles.eachcourse}>
+            <div className={styles.etop}>
+              <div className={styles.ecc}>
+                <h1>3</h1>
+                <h3>Introduction</h3>
+              </div>
+            </div>
+            <div className={styles.ep}>
+              <p>Learn the basics of using PPE and maintaining hygiene to ensure a safe, clean, and compliant work environment.</p>
+            </div>
+
+            <div className={styles.eaction}>
+              <Link href='' className={styles.eac}>
+                <button className={styles.locked}>Locked</button>
+              </Link>
+              <p>4 lessons</p>
+            </div>
+          </div>
+
+
+          <div className={styles.eachcourse}>
+            <div className={styles.etop}>
+              <div className={styles.ecc}>
+                <h1>4</h1>
+                <h3>Introduction</h3>
+              </div>
+            </div>
+            <div className={styles.ep}>
+              <p>Learn the basics of using PPE and maintaining hygiene to ensure a safe, clean, and compliant work environment.</p>
+            </div>
+
+            <div className={styles.eaction}>
+              <Link href='' className={styles.eac}>
+                <button className={styles.locked}>Locked</button>
+              </Link>
+              <p>4 lessons</p>
+            </div>
+          </div>
+
+
+        </div>
+
+      </div>
+
+
+      
     </div>
+  </div>
   );
 };
 

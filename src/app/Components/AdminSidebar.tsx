@@ -19,12 +19,11 @@ const AdminSidebar = () => {
   const links = [
     { href: "/admin-dashboard", label: "Home", icon: <FaTachometerAlt /> },
     { href: "/admin-dashboard/users", label: "Users", icon: <FaUsers /> },
-    { href: "/admin-dashboard/course", label: "Courses", icon: <FaBook /> },
+    { href: "/admin-dashboard/courses", label: "Courses", icon: <FaBook /> },
     { href: "/admin-dashboard/progress", label: "Progress", icon: <GiProgression /> },
     { href: "/admin-dashboard/feedbacks", label: "Feedback", icon: <MdOutlineRateReview /> },
-    { href: "/admin-dashboard/requests", label: "Requests", icon: <LuMessageSquareQuote /> },
-    { href: "/admin-dashboard/affiliate", label: "Affiliates", icon: <FaUsers /> },
-    { href: "/admin-dashboard/setting", label: "Settings", icon: <FaCog /> },
+    { href: "/admin-dashboard/affiliates", label: "Affiliates", icon: <FaUsers /> },
+    { href: "/admin-dashboard/claude-settings", label: "Claude Settings", icon: <FaCog /> },
     { href: "/", label: "Logout", icon: <FaSignOutAlt /> },
   ];
 
