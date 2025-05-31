@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react';
+import React from 'react';
 import styles from '../Dashboard.module.css';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -8,13 +8,7 @@ import "../StudentDashboard.css";
 import { RiBookOpenLine } from "react-icons/ri";
 
 
-const initialSegments = [
-  { title: 'Intro to Infection Control', video: '/videos/intro.mp4', pdf: '/pdfs/intro.pdf', completed: true },
-  { title: 'PPE & Hygiene Protocols', video: '/videos/ppe-hygiene.mp4', pdf: '/pdfs/ppe-hygiene.pdf', completed: true },
-  { title: 'Waste Disposal & Safety', video: '/videos/waste.mp4', pdf: '/pdfs/waste.pdf', completed: false },
-  { title: 'Emergency Response', video: '/videos/emergency.mp4', pdf: '/pdfs/emergency.pdf', completed: false },
-  { title: 'Final Assessment', video: '/videos/final.mp4', pdf: '/pdfs/final.pdf', completed: false },
-];
+
 
 const LessonScreen = () => {
 
