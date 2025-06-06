@@ -21,7 +21,6 @@
     width: 220px;
     background-color: #060b14;
     color: white;
-    padding: 2rem 20px;
     height: 100vh;
     position: fixed;
     top: 0;
@@ -88,13 +87,14 @@
       /* position: absolute; */
       width: 100%;
       height: auto;
-      padding: 1rem;
     }
   
     .sidebar ul {
       display: flex;
       justify-content: space-around;
       flex-wrap: wrap;
+      margin: 0;
+      padding: 0;
     }
   
     .sidebar li {
@@ -582,4 +582,16 @@
     font-size: 17px;
     color: #fff;
     letter-spacing: .4px;
+   }
+   @media screen and (max-width: 768px){
+    .pcontainer{
+      margin-top: 230px;
+    }
+   }
+   
+   @media screen and (max-width: 650px){
+    .coursesgroup .eachcourse{
+      width: 100%;
+    }
+
    }

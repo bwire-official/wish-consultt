@@ -78,6 +78,16 @@
 
 
 @media (max-width: 768px){
+  .welcome-card .wc div{
+    width: 100%;
+    margin-top: 20px;
+  }
+
+ 
+
+  .welcome-card .wc img{
+    width: 100%;
+  }
   .affiliate-dashboard {
     margin-top: 14rem;
   }
@@ -170,4 +180,11 @@
 
 .status.pending {
   color: #f1c40f;
+}
+
+@media (max-width: 768px){
+
+  .sidebar{
+    padding: unset;
+  }
 }

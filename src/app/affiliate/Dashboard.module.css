@@ -85,7 +85,7 @@
       /* position: absolute; */
       width: 100%;
       height: auto;
-      padding: 1rem;
+      padding: 0 !important;
     }
   
     .sidebar ul {
@@ -530,5 +530,35 @@
     background-color: #1e40af;
   }
   
+  @media (max-width: 768px){
+    .rContainer{
+      margin-top: 13rem;
+    }
+    .sidebar{
+      padding: unset;
+    }
+    .affiliateContainer{
+      margin-top: 13rem;
+    }
+    .eContainer{
+      margin-top: 13rem;
+    }
+    .pContainer{
+      margin-top: 13rem;
+    }
+    .sContainer{
+      margin-top: 13rem;
+    }
+  }
+
+  @media screen and (max-width:550px){
+    .affiliateContainer .title{
+      font-size: 22px;
+    }
+    .affiliateContainer .label {
+      font-size: 16px;
+      
+    }
+  }
   
 

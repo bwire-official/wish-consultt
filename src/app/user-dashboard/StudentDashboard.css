@@ -190,3 +190,14 @@
     }
   }
   
+
+  @media (max-width: 550px){
+
+    .welcome-card .wc div{
+      width: 100%;
+    }
+    .welcome-card .wc img{
+      width: 100%;
+      margin-bottom: 15px;
+    }
+  }

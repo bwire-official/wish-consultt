@@ -10,9 +10,21 @@
 }
 
 @media (max-width: 768px){
+  .dashboardContainer{
+    margin-top: 11rem;
+  }
+  .dashboardContainer .header{
+    font-size: 21px;
+  }
+  .dashboardContainer h2{
+    font-size: 20px;
+  }
   .dashboardContent {
     width: 100%;
     margin-top: 40px;
+  }
+  .sidebar{
+    padding: unset;
   }
 }
 
@@ -21,8 +33,8 @@
   width: 220px;
   background-color: #060b14;
   color: white;
-  padding: 2rem 1rem;
   height: 100vh;
+  padding: 2rem 1rem;
   /* position: fixed; */
   top: 0;
   left: 0;
@@ -80,24 +92,7 @@
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-  .sidebar {
-    /* position: absolute; */
-    width: 100%;
-    height: auto;
-    padding: 1rem;
-  }
 
-  .sidebar ul {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-  }
-
-  .sidebar li {
-    margin: 0.5rem 0;
-  }
-}
 
 
 .tableWrapper {
@@ -108,6 +103,7 @@
 .container {
   max-width: 1000px;
   margin: 2rem auto;
+  margin-top: 12rem;
   padding: 1.5rem;
   background-color: #f9fafb;
   border-radius: 10px;
@@ -664,4 +660,37 @@
 
 .claudeContainer input:checked + .slider:before {
   transform: translateX(22px);
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    /* position: absolute; */
+    width: 100%;
+    height: auto;
+    padding: 0 !important;
+  }
+
+  .sidebar ul {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+  }
+
+  .sidebar li {
+    margin: 0.5rem 0;
+  }
+  .claudeContainer{
+    margin-top: 11rem;
+  }
+}
+
+@media (max-width: 550px) {
+  .courseCard {
+    width: 100%;
+    
+  }
+  .courseCard .courseCardTop{
+    flex-direction: column-reverse;
+    gap: 5px;
+  }
 }

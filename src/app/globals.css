@@ -40,6 +40,7 @@ body {
 }
 
 
+
 /* General Header Styling */
 header {
   width: 100%;
@@ -687,7 +688,8 @@ button{
   width: 240px;
   background-color: #1a1a2e;
   color: #fff;
-  padding: 20px;
+  padding: 0px;
+  z-index: 1000000;
 }
 
 .sidebar h2 {
@@ -698,7 +700,8 @@ button{
 
 .sidebar ul {
   list-style: none;
-  padding: 0;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 .sidebar ul li {
@@ -858,6 +861,22 @@ button{
   .successes .success .success-flex .succ-masked{
     width: 100%;
   }
+  .footer-logo h2{
+    font-size: 21px;
+  }
+  .footer-links h3, .footer-social h3{
+    font-size: 18px;
+  }
+  .footer-links li{
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 550px){
+  .welcome-card .wc{
+    flex-direction:column-reverse;
+  }
+  
 }
 
 @media (max-width: 500px){

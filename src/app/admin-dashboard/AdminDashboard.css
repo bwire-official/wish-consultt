@@ -6,7 +6,7 @@
   }
   @media (max-width: 768px){
     .admin-dashboard {
-      margin-top: 14rem;
+      margin-top: 8rem;
     }
   }
   .admin-header{
@@ -203,6 +203,26 @@
   
     .admin-card {
       padding: 1rem;
+      background-color: red;
+    }
+  }
+
+  @media (max-width: 550px){
+    .welcome-card .wc div{
+      width: 100%;
+      margin-top: 20px;
+    }
+    .welcome-card .wc img{
+      width: 100%;
     }
   }
   
+  @media (max-width: 768px){
+    .dashboardContent {
+      width: 100%;
+      margin-top: 40px;
+    }
+    .sidebar{
+      padding: unset;
+    }
+  }
