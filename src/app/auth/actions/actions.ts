@@ -124,7 +124,7 @@ export async function login(formData: FormData) {
 
   // 2. Attempt to sign in the user with the found email
   try {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: { user }, error } = await supabase.auth.signInWithPassword({
       email: emailForLogin,
       password,
     });
@@ -133,7 +133,46 @@ export async function login(formData: FormData) {
       return { success: false, error: error.message };
     }
 
-    return { success: true };
+    if (!user) {
+      return { success: false, error: 'Login failed' };
+    }
+
+    // 3. Get the user's profile to check their role
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role, onboarding_completed')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) {
+      console.error('Profile lookup error:', profileError);
+      return { success: false, error: 'Failed to get user profile' };
+    }
+
+    if (!profile) {
+      return { success: false, error: 'User profile not found' };
+    }
+
+    // Use proper type since onboarding_completed exists in DB but not in TypeScript types
+    const userProfile = profile as unknown as { role: string; onboarding_completed: boolean };
+
+    // 4. Check role and return appropriate redirect path
+    if (userProfile.role === 'admin') {
+      return { success: true, redirectTo: '/admin' };
+    } else if (userProfile.role === 'affiliate') {
+      return { success: false, error: 'Please use the affiliate dashboard to sign in.' };
+    } else if (userProfile.role === 'student') {
+      // Check if onboarding is completed
+      if (!userProfile.onboarding_completed) {
+        return { success: true, redirectTo: '/onboarding/student' };
+      } else {
+        return { success: true, redirectTo: '/dashboard' };
+      }
+    } else {
+      // Default fallback for unknown roles
+      return { success: true, redirectTo: '/dashboard' };
+    }
+
   } catch (error) {
     console.error('Login error:', error);
     return { success: false, error: 'An unexpected error occurred' };

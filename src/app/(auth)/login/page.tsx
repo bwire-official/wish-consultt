@@ -39,8 +39,9 @@ function LoginForm() {
       const result = await login(formData);
       
       if (result && result.success) {
-        // Redirect to dashboard on success
-        window.location.href = '/dashboard';
+        // Use the redirectTo path from the login action
+        const redirectPath = result.redirectTo || '/dashboard';
+        window.location.href = redirectPath;
       } else if (result && result.error) {
         setError(result.error);
         setLoading(false);
