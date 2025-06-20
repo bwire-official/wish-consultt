@@ -8,9 +8,8 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { type Profile } from "@/types";
-import PhoneInput from 'react-phone-input-2';
-import 'react-phone-input-2/lib/style.css';
-import { useRouter } from 'next/navigation';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 import { type Database } from "@/types/supabase";
 
 interface OnboardingFormProps {
@@ -19,7 +18,7 @@ interface OnboardingFormProps {
 
 interface FormData {
   username: string;
-  phone_number: string;
+  phone_number: string | undefined;
   professional_role: string;
   specialization: string;
   experience_level: string;
@@ -141,62 +140,145 @@ const goals = [
 
 // Custom styles for phone input
 const phoneInputStyles = `
-  .phone-input-container .react-tel-input .form-control {
+  .PhoneInput {
+    position: relative;
+  }
+  
+  .PhoneInputInput {
     background: transparent !important;
     border: none !important;
     border-bottom: 2px solid #cbd5e1 !important;
     border-radius: 0 !important;
     color: #1e293b !important;
     font-size: 1.125rem !important;
-    padding: 0.75rem 0.75rem 0.75rem 3rem !important;
+    padding: 0.75rem 0.75rem 0.75rem 0.75rem !important;
     width: 100% !important;
     transition: border-color 0.2s !important;
+    outline: none !important;
   }
   
-  .phone-input-container .react-tel-input .form-control:focus {
+  .PhoneInputInput:focus {
     border-bottom-color: #14b8a6 !important;
     box-shadow: none !important;
   }
   
-  .dark .phone-input-container .react-tel-input .form-control {
-    border-bottom-color: #475569 !important;
+  .dark .PhoneInputInput {
+    border-bottom-color: #94a3b8 !important;
     color: #ffffff !important;
+    background: transparent !important;
   }
   
-  .dark .phone-input-container .react-tel-input .form-control:focus {
+  .dark .PhoneInputInput:focus {
     border-bottom-color: #2dd4bf !important;
   }
   
-  .phone-input-container .react-tel-input .form-control::placeholder {
+  .PhoneInputInput::placeholder {
     color: #64748b !important;
   }
   
-  .dark .phone-input-container .react-tel-input .form-control::placeholder {
+  .dark .PhoneInputInput::placeholder {
+    color: #cbd5e1 !important;
+  }
+  
+  .PhoneInputCountry {
+    position: absolute !important;
+    top: 50% !important;
+    left: 0 !important;
+    transform: translateY(-50%) !important;
+    z-index: 10 !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0.75rem 0.5rem !important;
+    cursor: pointer !important;
+  }
+  
+  .PhoneInputCountrySelect {
+    background: transparent !important;
+    border: none !important;
+    color: #1e293b !important;
+    font-size: 1rem !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .dark .PhoneInputCountrySelect {
+    color: #ffffff !important;
+  }
+  
+  .PhoneInputCountryIcon {
+    width: 20px !important;
+    height: 15px !important;
+    margin-right: 0.5rem !important;
+  }
+  
+  .PhoneInputCountrySelectArrow {
+    margin-left: 0.5rem !important;
+    color: #64748b !important;
+  }
+  
+  .dark .PhoneInputCountrySelectArrow {
     color: #94a3b8 !important;
   }
   
-  .phone-input-container .react-tel-input .flag-dropdown {
-    background: transparent !important;
-    border: none !important;
-    border-bottom: 2px solid #cbd5e1 !important;
-    border-radius: 0 !important;
+  /* Force checkbox visibility */
+  input[type="checkbox"] {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    width: 16px !important;
+    height: 16px !important;
+    border: 2px solid #d1d5db !important;
+    border-radius: 4px !important;
+    background-color: #ffffff !important;
+    position: relative !important;
+    cursor: pointer !important;
   }
   
-  .dark .phone-input-container .react-tel-input .flag-dropdown {
-    border-bottom-color: #475569 !important;
+  input[type="checkbox"]:checked {
+    background-color: #14b8a6 !important;
+    border-color: #14b8a6 !important;
   }
   
-  .phone-input-container .react-tel-input .flag-dropdown.open {
-    border-bottom-color: #14b8a6 !important;
+  input[type="checkbox"]:checked::after {
+    content: "✓" !important;
+    position: absolute !important;
+    top: -2px !important;
+    left: 1px !important;
+    color: #ffffff !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
   }
   
-  .dark .phone-input-container .react-tel-input .flag-dropdown.open {
-    border-bottom-color: #2dd4bf !important;
+  /* Dark mode checkboxes */
+  .dark input[type="checkbox"] {
+    border-color: #6b7280 !important;
+    background-color: #374151 !important;
+  }
+  
+  .dark input[type="checkbox"]:checked {
+    background-color: #14b8a6 !important;
+    border-color: #14b8a6 !important;
+  }
+  
+  .dark input[type="checkbox"]:checked::after {
+    color: #ffffff !important;
+  }
+  
+  /* Larger checkboxes for preferences */
+  input[type="checkbox"][class*="w-5"] {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  input[type="checkbox"][class*="w-5"]:checked::after {
+    font-size: 14px !important;
+    top: -1px !important;
+    left: 2px !important;
   }
 `;
 
 export function OnboardingForm({ profile }: OnboardingFormProps) {
-  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
@@ -373,9 +455,11 @@ export function OnboardingForm({ profile }: OnboardingFormProps) {
         onboarding_data?: Database['public']['Tables']['profiles']['Row']['onboarding_data'];
         phone_number?: string;
         avatar_url?: string;
+        onboarding_completed?: boolean;
       } = {
         username: formData.username,
-        onboarding_data: onboardingData
+        onboarding_data: onboardingData,
+        onboarding_completed: true
       };
 
       // Only add direct profile fields that we know exist for sure
@@ -399,12 +483,18 @@ export function OnboardingForm({ profile }: OnboardingFormProps) {
         throw new Error(profileError.message || 'Failed to update profile');
       }
 
+      // Refresh the session to get updated profile data
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error('Session refresh error:', refreshError);
+      }
+
       // Show success message
       setShowSuccessPopup(true);
       
-      // Redirect to dashboard after 2 seconds
+      // Redirect to dashboard after 2 seconds with full page reload
       setTimeout(() => {
-        router.push('/dashboard');
+        window.location.href = '/dashboard';
       }, 2000);
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -415,6 +505,22 @@ export function OnboardingForm({ profile }: OnboardingFormProps) {
   };
 
   const nextStep = () => {
+    // Validate username on step 3
+    if (currentStep === 3) {
+      if (!formData.username.trim()) {
+        alert('Please enter a username before proceeding.');
+        return;
+      }
+      if (usernameAvailable === false) {
+        alert('Please choose an available username before proceeding.');
+        return;
+      }
+      if (usernameAvailable === null && formData.username.trim().length >= 3) {
+        alert('Please wait for username availability check to complete.');
+        return;
+      }
+    }
+    
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     }
@@ -680,16 +786,15 @@ export function OnboardingForm({ profile }: OnboardingFormProps) {
                 </label>
                 <div className="relative">
                   <PhoneInput
-                    country={'us'}
+                    international
+                    defaultCountry="US"
                     value={formData.phone_number}
-                    onChange={(phone) => setFormData({ ...formData, phone_number: phone })}
-                    inputClass="w-full px-4 py-3 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:border-teal-500 dark:focus:border-teal-400 transition-colors text-lg"
-                    buttonClass="bg-transparent border-b-2 border-slate-300 dark:border-slate-600 focus:border-teal-500 dark:focus:border-teal-400 text-slate-900 dark:text-white"
-                    dropdownClass="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg"
-                    enableSearch={true}
-                    searchPlaceholder="Search country..."
+                    onChange={(phone) => setFormData({ ...formData, phone_number: phone || '' })}
                     placeholder="Enter your phone number"
-                    containerClass="phone-input-container"
+                    autoComplete="tel"
+                    smartCaret={true}
+                    addInternationalOption={true}
+                    countries={undefined}
                   />
                 </div>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -841,7 +946,7 @@ export function OnboardingForm({ profile }: OnboardingFormProps) {
                               });
                             }
                           }}
-                          className="w-4 h-4 text-teal-600 bg-white dark:bg-slate-800 border-slate-400 dark:border-slate-600 rounded focus:ring-teal-500 dark:focus:ring-teal-400"
+                          className="w-4 h-4"
                         />
                         <span className="text-sm text-slate-700 dark:text-slate-300">{cert}</span>
                       </label>
@@ -872,7 +977,7 @@ export function OnboardingForm({ profile }: OnboardingFormProps) {
                               });
                             }
                           }}
-                          className="w-4 h-4 text-teal-600 bg-white dark:bg-slate-800 border-slate-400 dark:border-slate-600 rounded focus:ring-teal-500 dark:focus:ring-teal-400"
+                          className="w-4 h-4"
                         />
                         <span className="text-sm text-slate-700 dark:text-slate-300">{interest}</span>
                       </label>
@@ -917,7 +1022,7 @@ export function OnboardingForm({ profile }: OnboardingFormProps) {
                             });
                           }
                         }}
-                        className="w-4 h-4 text-teal-600 bg-white dark:bg-slate-800 border-slate-400 dark:border-slate-600 rounded focus:ring-teal-500 dark:focus:ring-teal-400"
+                        className="w-4 h-4"
                       />
                       <span className="text-sm text-slate-700 dark:text-slate-300">{goal}</span>
                     </label>
@@ -947,7 +1052,7 @@ export function OnboardingForm({ profile }: OnboardingFormProps) {
                       ...formData,
                       preferences: { ...formData.preferences, notifications: e.target.checked }
                     })}
-                    className="w-5 h-5 text-teal-600 bg-white dark:bg-slate-800 border-slate-400 dark:border-slate-600 rounded focus:ring-teal-500 dark:focus:ring-teal-400"
+                    className="w-5 h-5"
                   />
                   <div>
                     <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Push Notifications</span>
@@ -963,7 +1068,7 @@ export function OnboardingForm({ profile }: OnboardingFormProps) {
                       ...formData,
                       preferences: { ...formData.preferences, email_updates: e.target.checked }
                     })}
-                    className="w-5 h-5 text-teal-600 bg-white dark:bg-slate-800 border-slate-400 dark:border-slate-600 rounded focus:ring-teal-500 dark:focus:ring-teal-400"
+                    className="w-5 h-5"
                   />
                   <div>
                     <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Email Updates</span>
@@ -979,7 +1084,7 @@ export function OnboardingForm({ profile }: OnboardingFormProps) {
                       ...formData,
                       preferences: { ...formData.preferences, course_recommendations: e.target.checked }
                     })}
-                    className="w-5 h-5 text-teal-600 bg-white dark:bg-slate-800 border-slate-400 dark:border-slate-600 rounded focus:ring-teal-500 dark:focus:ring-teal-400"
+                    className="w-5 h-5"
                   />
                   <div>
                     <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Course Recommendations</span>
@@ -1017,7 +1122,14 @@ export function OnboardingForm({ profile }: OnboardingFormProps) {
                   )}
                   <button
                     onClick={nextStep}
-                    className="inline-flex items-center px-6 py-2 bg-gradient-to-r from-teal-500 to-blue-500 text-white hover:from-teal-600 hover:to-blue-600 rounded-lg transition-all"
+                    disabled={
+                      currentStep === 3 && (
+                        !formData.username.trim() || 
+                        usernameAvailable === false || 
+                        (usernameAvailable === null && formData.username.trim().length >= 3)
+                      )
+                    }
+                    className="inline-flex items-center px-6 py-2 bg-gradient-to-r from-teal-500 to-blue-500 text-white hover:from-teal-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all"
                   >
                     Next
                     <ArrowRight className="w-4 h-4 ml-2" />
