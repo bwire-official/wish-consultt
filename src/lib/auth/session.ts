@@ -36,7 +36,23 @@ export async function getProfile(): Promise<Profile | null> {
     return null
   }
 
-  return profile as Profile
+  // Map the database result to our Profile interface
+  return {
+    id: profile.id,
+    created_at: profile.created_at,
+    updated_at: profile.updated_at,
+    username: profile.username,
+    email: profile.email,
+    full_name: profile.full_name,
+    phone_number: profile.phone_number,
+    role: profile.role,
+    status: profile.status,
+    onboarding_data: profile.onboarding_data,
+    referred_by: profile.referred_by,
+    avatar_url: (profile as Record<string, unknown>).avatar_url as string | null,
+    is_premium: (profile as Record<string, unknown>).is_premium as boolean,
+    onboarding_completed: (profile as Record<string, unknown>).onboarding_completed as boolean
+  } as Profile
 }
 
 export async function updateProfile(

@@ -1,8 +1,8 @@
 import { getProfile } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
-import { StudentDashboardClient } from './StudentDashboardClient';
+import { SettingsClient } from './SettingsClient';
 
-export default async function DashboardPage() {
+export default async function SettingsPage() {
   const profile = await getProfile();
 
   if (!profile) {
@@ -14,5 +14,5 @@ export default async function DashboardPage() {
     redirect('/onboarding/student');
   }
 
-  return <StudentDashboardClient profile={profile} />;
+  return <SettingsClient profile={profile} />;
 } 

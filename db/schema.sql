@@ -41,8 +41,19 @@ CREATE TABLE public.profiles (
   phone_number text,
   role text NOT NULL DEFAULT 'student', -- 'student', 'admin', or 'affiliate'
   status text NOT NULL DEFAULT 'active', -- 'active', 'suspended'
+  onboarding_completed boolean NOT NULL DEFAULT false, -- Track if user completed onboarding
   onboarding_data jsonb, -- Flexible space for onboarding info (preferences, etc.)
   referred_by uuid, -- For students referred by an affiliate
+  avatar_url text, -- URL for user's profile picture
+  is_premium boolean NOT NULL DEFAULT false, -- Track premium subscription status
+  specialization text,
+  experience_level text,
+  education_level text,
+  institution text,
+  graduation_year integer,
+  availability text,
+  timezone text DEFAULT 'UTC',
+  language text DEFAULT 'en',
   CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE,
   CONSTRAINT profiles_referred_by_fkey FOREIGN KEY (referred_by) REFERENCES public.profiles(id) ON DELETE SET NULL
 );
@@ -151,6 +162,77 @@ CREATE TABLE public.announcements (
 );
 ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 
+-- Create certifications table
+CREATE TABLE public.certifications (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  profile_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
+  certification_name text NOT NULL,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- Create interests table
+CREATE TABLE public.interests (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  profile_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
+  interest_name text NOT NULL,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- Create learning_goals table
+CREATE TABLE public.learning_goals (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  profile_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
+  goal_name text NOT NULL,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- Create indexes for better performance
+CREATE INDEX idx_profiles_username ON public.profiles(username);
+CREATE INDEX idx_profiles_email ON public.profiles(email);
+CREATE INDEX idx_certifications_profile_id ON public.certifications(profile_id);
+CREATE INDEX idx_interests_profile_id ON public.interests(profile_id);
+CREATE INDEX idx_learning_goals_profile_id ON public.learning_goals(profile_id);
+
+-- Create RLS policies
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.certifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.interests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.learning_goals ENABLE ROW LEVEL SECURITY;
+
+-- Profiles policies
+CREATE POLICY "Users can view their own profile" ON public.profiles
+  FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Users can update their own profile" ON public.profiles
+  FOR UPDATE USING (auth.uid() = id);
+
+CREATE POLICY "Users can insert their own profile" ON public.profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- Allow trigger function to insert profiles during user creation
+CREATE POLICY "Allow trigger function to insert profiles" ON public.profiles
+  FOR INSERT WITH CHECK (true);
+
+-- Certifications policies
+CREATE POLICY "Users can view their own certifications" ON public.certifications
+  FOR SELECT USING (auth.uid() = profile_id);
+
+CREATE POLICY "Users can manage their own certifications" ON public.certifications
+  FOR ALL USING (auth.uid() = profile_id);
+
+-- Interests policies
+CREATE POLICY "Users can view their own interests" ON public.interests
+  FOR SELECT USING (auth.uid() = profile_id);
+
+CREATE POLICY "Users can manage their own interests" ON public.interests
+  FOR ALL USING (auth.uid() = profile_id);
+
+-- Learning goals policies
+CREATE POLICY "Users can view their own learning goals" ON public.learning_goals
+  FOR SELECT USING (auth.uid() = profile_id);
+
+CREATE POLICY "Users can manage their own learning goals" ON public.learning_goals
+  FOR ALL USING (auth.uid() = profile_id);
 
 -- -----------------------------------------------------------------
 -- Part 3: AUTOMATION (Smart User Profile Creation)
@@ -162,6 +244,7 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   new_role TEXT;
@@ -179,7 +262,7 @@ BEGIN
   VALUES (
     new.id,
     new.email,
-    new.raw_user_meta_data->>'full_name',
+    COALESCE(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'first_name' || ' ' || new.raw_user_meta_data->>'last_name'),
     new.raw_user_meta_data->>'username',
     new_role,
     (new.raw_user_meta_data->>'referred_by')::uuid
@@ -193,6 +276,20 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW
     EXECUTE FUNCTION public.handle_new_user();
+
+-- Create function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger for updating updated_at
+CREATE OR REPLACE TRIGGER update_profiles_updated_at
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- =================================================================
 --      END OF SCRIPT

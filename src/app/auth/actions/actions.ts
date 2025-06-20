@@ -1,37 +1,74 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@/lib/supabase/service' // We will use the admin client
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 
 // --- SIGNUP ACTION ---
 export async function signup(formData: FormData) {
-  //const origin = headers().get('origin')
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  const fullName = formData.get('fullName') as string
-  const username = formData.get('username') as string
-  const supabase = createClient()
+  const origin = (await headers()).get('origin');
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
+  const firstName = formData.get('firstName') as string;
+  const lastName = formData.get('lastName') as string;
+  const fullName = `${firstName} ${lastName}`.trim();
+  const supabase = createClient(); // This is the user-context client
 
-  const { error } = await supabase.auth.signUp({
+  // Step 1: Create the user in the Auth system.
+  // This will now succeed because the broken trigger is gone.
+  const { data: { user }, error: signUpError } = await supabase.auth.signUp({
     email,
     password,
     options: {
+      emailRedirectTo: `${origin}/auth/callback?next=/onboarding/student`,
       data: {
         full_name: fullName,
-        username: username,
-      },
-      // Corrected to not use emailRedirectTo for OTP flow
+        first_name: firstName,
+        last_name: lastName
+      }
     },
-  })
+  });
 
-  if (error) {
-    console.error('Signup Error:', error)
-    // Redirect with a generic error, specific errors handled on page
-    redirect('/signup?message=Could not authenticate user. Please try again.')
+  if (signUpError || !user) {
+    console.error('Signup Error:', signUpError);
+    // Use the error message from Supabase if available
+    const message = signUpError?.message || 'Could not create user.';
+    return redirect(`/signup?message=${encodeURIComponent(message)}`);
   }
 
-  // On success, redirect to the correct verification page
-  redirect(`/verify-email?email=${email}`)
+  // Step 1.5: Update the user's display name in Auth
+  const { error: updateError } = await supabase.auth.updateUser({
+    data: { 
+      full_name: fullName,
+      first_name: firstName,
+      last_name: lastName
+    }
+  });
+
+  if (updateError) {
+    console.error('Failed to update user display name:', updateError);
+    // Continue anyway, this is not critical
+  }
+
+  // Step 2: Now that the auth user exists, explicitly INSERT their profile.
+  // We use the ADMIN client to bypass RLS for this one-time, secure setup.
+  const { error: profileError } = await supabaseAdmin
+    .from('profiles')
+    .insert({ 
+      id: user.id, 
+      email: user.email, 
+      full_name: fullName 
+    });
+
+  if (profileError) {
+    console.error("CRITICAL: Failed to create profile for new user:", profileError);
+    // Optional: Add logic here to delete the auth user if profile creation fails, to prevent orphaned users.
+    return redirect('/signup?message=Could not create user profile.');
+  }
+
+  // Step 3: Redirect to email verification.
+  return redirect(`/verify-email?email=${email}`);
 }
 
 
@@ -51,11 +88,212 @@ export async function verifyOtp(formData: FormData) {
   // If Supabase returns an error (invalid token), this block will now execute
   if (error) {
     console.error('OTP Verification Error:', error)
-    // Redirect back to the SAME page with an error message in the URL
-    redirect(`/verify-email?email=${email}&message=Invalid or expired code. Please try again.`)
+    // Return error instead of redirecting
+    return { success: false, error: 'Invalid or expired code. Please try again.' }
   }
 
-  // This line is ONLY reached if the code was correct.
-  // Redirect to the start of the onboarding flow.
-  redirect('/onboarding/student')
+  // Return success - the client will handle the redirect with countdown
+  return { success: true }
+}
+
+// --- LOGIN ACTION ---
+export async function login(formData: FormData) {
+  const identity = formData.get('identity') as string; // This can be email or username
+  const password = formData.get('password') as string;
+  const supabase = createClient();
+  let emailForLogin: string | null = null;
+
+  // 1. Determine if the user provided an email or a username
+  if (identity.includes('@')) {
+    // If it contains '@', assume it's an email
+    emailForLogin = identity;
+  } else {
+    // Otherwise, assume it's a username and find the associated email
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('username', identity)
+      .single();
+
+    if (error || !profile || !profile.email) {
+      console.error('Username lookup error:', error);
+      return { success: false, error: 'Invalid credentials' };
+    }
+    emailForLogin = profile.email;
+  }
+
+  // 2. Attempt to sign in the user with the found email
+  try {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: emailForLogin,
+      password,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Login error:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+export async function signUp(formData: FormData) {
+  const supabase = await createClient();
+
+  const data = {
+    email: formData.get("email") as string,
+    password: formData.get("password") as string,
+  };
+
+  const { error } = await supabase.auth.signUp(data);
+
+  if (error) {
+    return redirect("/auth-code-error");
+  }
+
+  return redirect("/verify-email");
+}
+
+export async function signIn(formData: FormData) {
+  const supabase = await createClient();
+
+  const data = {
+    email: formData.get("email") as string,
+    password: formData.get("password") as string,
+  };
+
+  const { error } = await supabase.auth.signInWithPassword(data);
+
+  if (error) {
+    return redirect("/auth-code-error");
+  }
+
+  return redirect("/dashboard");
+}
+
+export async function signOut() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  return redirect("/");
+}
+
+export async function resetPassword(formData: FormData) {
+  const supabase = await createClient();
+
+  const data = {
+    email: formData.get("email") as string,
+  };
+
+  const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/reset-password`,
+  });
+
+  if (error) {
+    return redirect("/auth-code-error");
+  }
+
+  return redirect("/forgot-password");
+}
+
+export async function updatePassword(formData: FormData) {
+  const supabase = await createClient();
+
+  const data = {
+    password: formData.get("password") as string,
+  };
+
+  const { error } = await supabase.auth.updateUser({
+    password: data.password,
+  });
+
+  if (error) {
+    return redirect("/auth-code-error");
+  }
+
+  return redirect("/dashboard");
+}
+
+export async function resendVerificationEmail(email: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: email,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
+// --- SIMPLIFIED SIGNUP ACTION (for debugging) ---
+export async function signupSimple(formData: FormData) {
+  console.log('=== SIMPLIFIED SIGNUP ACTION STARTED ===');
+  
+  const origin = (await headers()).get('origin');
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
+  const firstName = formData.get('firstName') as string;
+  const lastName = formData.get('lastName') as string;
+  const fullName = `${firstName} ${lastName}`.trim();
+  
+  console.log('Form data received:', { email, firstName, lastName, fullName });
+  
+  const supabase = createClient();
+  console.log('Supabase client created');
+
+  try {
+    // Step 1: Create the user in auth.users (without trigger)
+    console.log('Step 1: Creating user in auth.users...');
+    const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${origin}/auth/callback?next=/onboarding/student`,
+        data: {
+          full_name: fullName,
+          first_name: firstName,
+          last_name: lastName
+        }
+      },
+    });
+
+    console.log('Signup response:', { user: user?.id, error: signUpError });
+
+    if (signUpError || !user) {
+      console.error('Signup Error:', signUpError);
+      return redirect('/signup?message=Could not create user.');
+    }
+
+    // Step 2: Manually create the profile
+    console.log('Step 2: Manually creating profile...');
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id: user.id,
+        email: user.email,
+        full_name: fullName,
+        role: 'student',
+        status: 'active',
+        onboarding_completed: false
+      });
+
+    if (profileError) {
+      console.error('Profile creation error:', profileError);
+      // Don't redirect, just log the error for debugging
+      return redirect('/signup?message=User created but profile failed.');
+    }
+
+    console.log('Profile created successfully');
+    return redirect(`/verify-email?email=${email}`);
+    
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    return redirect('/signup?message=Unexpected error occurred.');
+  }
 } 

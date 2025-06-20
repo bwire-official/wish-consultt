@@ -43,3 +43,5 @@ next-env.d.ts
 .cursor
 guide.md 
 structure.md
+
+.env.local

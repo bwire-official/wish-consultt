@@ -55,6 +55,12 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  html {
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 }
 
@@ -198,35 +204,28 @@
   height: 250px;
   bottom: 20%;
   left: 20%;
-  animation: float 15s ease-in-out infinite;
+  animation: float 18s ease-in-out infinite;
   animation-delay: -10s;
 }
 
 .bubble-center {
-  width: 600px;
-  height: 600px;
+  width: 200px;
+  height: 200px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: radial-gradient(circle at center, 
-    rgba(20, 184, 166, 0.15), 
-    rgba(59, 130, 246, 0.15)
-  );
-  animation: pulse 8s ease-in-out infinite;
+  animation: pulse 4s ease-in-out infinite;
 }
 
 @keyframes float {
   0%, 100% {
-    transform: translate(0, 0);
+    transform: translateY(0px) rotate(0deg);
   }
-  25% {
-    transform: translate(50px, 50px);
+  33% {
+    transform: translateY(-20px) rotate(120deg);
   }
-  50% {
-    transform: translate(0, 100px);
-  }
-  75% {
-    transform: translate(-50px, 50px);
+  66% {
+    transform: translateY(10px) rotate(240deg);
   }
 }
 
@@ -237,30 +236,29 @@
   }
   50% {
     transform: translate(-50%, -50%) scale(1.1);
-    opacity: 0.7;
+    opacity: 0.8;
   }
 }
 
-/* Glass effect */
+/* Glassmorphism Effects */
 .glass {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .dark .glass {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Gradient text animation */
+/* Gradient Text */
 .gradient-text {
-  background: linear-gradient(to right, #14b8a6, #3b82f6);
+  background: linear-gradient(135deg, #14b8a6, #3b82f6);
   -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   background-clip: text;
-  color: transparent;
-  animation: gradient 8s ease infinite;
-  background-size: 200% 200%;
 }
 
 @keyframes gradient {
@@ -275,47 +273,281 @@
   }
 }
 
-/* Smooth transitions */
+/* Smooth Transitions */
 .transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Card hover effects */
+/* Hover Lift Effect */
 .hover-lift {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .hover-lift:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px);
 }
 
-/* Button ripple effect */
+/* Ripple Effect */
 .ripple {
   position: relative;
   overflow: hidden;
 }
 
 .ripple::after {
-  content: "";
+  content: '';
   position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
-  background-repeat: no-repeat;
-  background-position: 50%;
-  transform: scale(10, 10);
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
   opacity: 0;
-  transition: transform 0.5s, opacity 1s;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
 }
 
 .ripple:active::after {
-  transform: scale(0, 0);
-  opacity: 0.3;
-  transition: 0s;
+  animation: ripple 1s ease-out;
+}
+
+/* Blob Animation for Glassmorphism */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Phone Input Custom Styles */
+.react-tel-input {
+  position: relative;
+}
+
+.react-tel-input .form-control {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid;
+  border-color: rgb(203 213 225);
+  background: transparent;
+  color: rgb(15 23 42);
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+  font-weight: 500;
+}
+
+.react-tel-input .flag-dropdown {
+  border: none;
+  border-bottom: 2px solid;
+  border-color: rgb(203 213 225);
+  background: transparent;
+}
+
+.react-tel-input .flag-dropdown .selected-flag {
+  background: transparent;
+  border: none;
+  color: rgb(15 23 42);
+}
+
+.react-tel-input .flag-dropdown .selected-flag .flag {
+  margin-right: 0.5rem;
+}
+
+.react-tel-input .flag-dropdown .selected-flag .arrow {
+  border-top: 4px solid rgb(15 23 42);
+}
+
+.react-tel-input .flag-dropdown .selected-flag .arrow.up {
+  border-bottom: 4px solid rgb(15 23 42);
+  border-top: none;
+}
+
+.react-tel-input .country-list {
+  position: fixed !important;
+  z-index: 9999 !important;
+  background: white;
+  border: 1px solid rgb(203 213 225);
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-height: 15rem;
+  overflow-y: auto;
+  margin-top: 0.25rem;
+}
+
+.react-tel-input .country-list .country {
+  padding: 0.75rem;
+  border-bottom: 1px solid rgb(241 245 249);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.react-tel-input .country-list .country:hover {
+  background-color: rgb(248 250 252);
+}
+
+.react-tel-input .country-list .country.highlight {
+  background-color: rgb(20 184 166);
+  color: white;
+}
+
+.react-tel-input .country-list .search {
+  padding: 0.75rem;
+  border: none;
+  border-bottom: 1px solid rgb(203 213 225);
+  background: white;
+  color: rgb(15 23 42);
+  font-size: 0.875rem;
+  width: 100%;
+  outline: none;
+}
+
+.react-tel-input .country-list .search:focus {
+  border-color: rgb(20 184 166);
+}
+
+/* Dark mode styles */
+.dark .react-tel-input .form-control {
+  border-color: rgb(71 85 105);
+  color: rgb(248 250 252);
+}
+
+.dark .react-tel-input .flag-dropdown {
+  border-color: rgb(71 85 105);
+}
+
+.dark .react-tel-input .flag-dropdown .selected-flag {
+  color: rgb(248 250 252);
+}
+
+.dark .react-tel-input .flag-dropdown .selected-flag .arrow {
+  border-top-color: rgb(248 250 252);
+}
+
+.dark .react-tel-input .flag-dropdown .selected-flag .arrow.up {
+  border-bottom-color: rgb(248 250 252);
+  border-top: none;
+}
+
+.dark .react-tel-input .country-list {
+  background: rgb(30 41 59);
+  border-color: rgb(71 85 105);
+}
+
+.dark .react-tel-input .country-list .country {
+  border-bottom-color: rgb(51 65 85);
+  color: rgb(248 250 252);
+}
+
+.dark .react-tel-input .country-list .country:hover {
+  background-color: rgb(51 65 85);
+}
+
+.dark .react-tel-input .country-list .search {
+  background: rgb(30 41 59);
+  border-color: rgb(71 85 105);
+  color: rgb(248 250 252);
+}
+
+.dark .react-tel-input .country-list .search:focus {
+  border-color: rgb(20 184 166);
+}
+
+/* Select Dropdown Custom Styles */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+.dark select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23e2e8f0' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+}
+
+select option {
+  background-color: white;
+  color: rgb(15 23 42);
+  padding: 0.5rem;
+}
+
+.dark select option {
+  background-color: rgb(30 41 59);
+  color: rgb(248 250 252);
+}
+
+/* Custom select styling for better dark mode support */
+.custom-select {
+  position: relative;
+}
+
+.custom-select select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-bottom: 2px solid;
+  border-color: rgb(203 213 225);
+  background: transparent;
+  color: rgb(15 23 42);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+  font-weight: 500;
+  border-radius: 0.5rem;
+}
+
+.dark .custom-select select {
+  border-color: rgb(71 85 105);
+  color: rgb(248 250 252);
+}
+
+.custom-select select:focus {
+  border-color: rgb(20 184 166);
+}
+
+.dark .custom-select select:focus {
+  border-color: rgb(20 184 166);
+}
+
+.custom-select select option {
+  background-color: white;
+  color: rgb(15 23 42);
+  padding: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.dark .custom-select select option {
+  background-color: rgb(30 41 59);
+  color: rgb(248 250 252);
+}
+
+.custom-select select option:hover {
+  background-color: rgb(248 250 252);
+}
+
+.dark .custom-select select option:hover {
+  background-color: rgb(51 65 85);
 } 

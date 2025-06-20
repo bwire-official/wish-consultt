@@ -14,16 +14,17 @@ export function createClient() {
           const store = await cookieStore;
           return store.getAll();
         },
-        // Correctly typing the parameter to fix the "unused variable" error.
         setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
           try {
+            // Only set cookies if we're in a Server Action or Route Handler
+            // In Server Components, this will be ignored
             cookiesToSet.forEach(async ({ name, value, options }) => {
               const store = await cookieStore;
               store.set(name, value, options);
             })
           } catch {
             // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing user sessions.
+           
           }
         },
       },
