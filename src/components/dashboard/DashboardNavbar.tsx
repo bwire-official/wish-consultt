@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { ButtonLoader } from "@/components/ui/loaders";
+import { signOut } from "@/app/auth/actions/actions";
 
 interface DashboardNavbarProps {
   profile: {
@@ -38,16 +39,12 @@ export function DashboardNavbar({ profile }: DashboardNavbarProps) {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      // Simulate logout delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Here you would implement actual logout logic
-      console.log('Logging out...');
-      
-      // Redirect to login page
-      window.location.href = '/login';
+      // Call the proper signOut action
+      await signOut();
     } catch (error) {
       console.error('Logout failed:', error);
+      // Fallback to manual redirect if the action fails
+      window.location.href = '/login';
     } finally {
       setIsLoggingOut(false);
     }
