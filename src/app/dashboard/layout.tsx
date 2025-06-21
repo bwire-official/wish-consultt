@@ -1,6 +1,7 @@
 import { getProfile } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import { DashboardNavbar } from '@/components/dashboard/DashboardNavbar';
+import { PresenceTrackerWrapper } from '@/components/admin/PresenceTrackerWrapper';
 
 export default async function DashboardLayout({
   children,
@@ -19,18 +20,21 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="dashboard-layout" data-user-id={profile.id}>
-      <DashboardNavbar
-        profile={{
-          ...profile,
-          full_name: profile.full_name ?? undefined,
-          username: profile.username ?? undefined,
-          avatar_url: profile.avatar_url ?? undefined,
-        }}
-      />
-      <div className="pt-14">
-        {children}
+    <>
+      {profile && <PresenceTrackerWrapper profile={profile} />}
+      <div className="dashboard-layout" data-user-id={profile.id}>
+        <DashboardNavbar
+          profile={{
+            ...profile,
+            full_name: profile.full_name ?? undefined,
+            username: profile.username ?? undefined,
+            avatar_url: profile.avatar_url ?? undefined,
+          }}
+        />
+        <div className="pt-14">
+          {children}
+        </div>
       </div>
-    </div>
+    </>
   );
 } 

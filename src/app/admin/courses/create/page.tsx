@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { GlassCard } from "@/components/ui/glass-card";
 import {
   ArrowLeft,
   Save,
   Upload,
   Plus,
   X,
-  Clock,
   DollarSign,
-  CreditCard,
   Eye,
+  BookOpen,
+  Settings,
+  FileText,
+  Image as ImageIcon
 } from "lucide-react";
 
 export default function CreateCoursePage() {
@@ -22,9 +25,11 @@ export default function CreateCoursePage() {
     price: "",
     isFree: false,
     featured: false,
+    tags: "",
+    thumbnail: null as File | null,
     paymentDetails: {
-      currency: "NGN",
-      paymentMethod: "flutterwave",
+      currency: "USD",
+      paymentMethod: "stripe",
       enableInstallments: false,
       maxInstallments: 3,
       earlyBirdDiscount: false,
@@ -36,16 +41,16 @@ export default function CreateCoursePage() {
         id: 1,
         title: "",
         description: "",
-        video: null,
-        pdf: null,
+        video: null as File | null,
+        pdf: null as File | null,
         duration: "",
         isPreview: false,
       },
     ],
   });
 
-  const [showPaymentSettings, setShowPaymentSettings] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [activeTab, setActiveTab] = useState("basic");
 
   const handleModuleChange = (
     index: number,
@@ -89,197 +94,363 @@ export default function CreateCoursePage() {
     console.log(courseData);
   };
 
+  const tabs = [
+    { id: "basic", name: "Basic Info", icon: BookOpen },
+    { id: "content", name: "Content", icon: FileText },
+    { id: "pricing", name: "Pricing", icon: DollarSign },
+    { id: "settings", name: "Settings", icon: Settings },
+  ];
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center space-x-4">
-          <button className="p-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
-              Create New Course
-            </h1>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Add a new course to the platform
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={() => setShowPreview(true)}
-            className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
-          >
-            <Eye className="h-5 w-5 mr-2" />
-            Preview
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-blue-500 text-white hover:from-teal-600 hover:to-blue-600"
-          >
-            <Save className="h-5 w-5 mr-2" />
-            Save Course
-          </button>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden">
+      {/* Glowing Lights Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-20 left-1/4 w-80 h-80 bg-green-400/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
 
-      {/* Course Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Information */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-4 sm:p-6">
-          <h2 className="text-lg font-medium text-slate-900 dark:text-white mb-4">
-            Course Information
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+      <div className="relative z-10 p-6">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
+          <div className="flex items-center gap-4">
+            <button className="p-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-700/50 transition-all duration-200 backdrop-blur-sm">
+              <ArrowLeft className="h-5 w-5" />
+            </button>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Course Title
-              </label>
-              <input
-                type="text"
-                value={courseData.title}
-                onChange={(e) =>
-                  setCourseData({ ...courseData, title: e.target.value })
-                }
-                className="block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                placeholder="Enter course title"
-                required
-              />
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg">
+                  <BookOpen className="h-6 w-6 text-white" />
+                </div>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Create New Course</h1>
+              </div>
+              <p className="text-slate-600 dark:text-slate-400">Add a new course to the platform</p>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Category
-              </label>
-              <select
-                value={courseData.category}
-                onChange={(e) =>
-                  setCourseData({ ...courseData, category: e.target.value })
-                }
-                className="block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                required
-              >
-                <option value="">Select a category</option>
-                <option value="healthcare">Healthcare</option>
-                <option value="anatomy">Anatomy</option>
-                <option value="physiology">Physiology</option>
-                <option value="nursing">Nursing</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Level
-              </label>
-              <select
-                value={courseData.level}
-                onChange={(e) =>
-                  setCourseData({ ...courseData, level: e.target.value })
-                }
-                className="block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                required
-              >
-                <option value="">Select a level</option>
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Description
-              </label>
-              <textarea
-                value={courseData.description}
-                onChange={(e) =>
-                  setCourseData({ ...courseData, description: e.target.value })
-                }
-                rows={4}
-                className="block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                placeholder="Enter course description"
-                required
-              />
-            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowPreview(true)}
+              className="inline-flex items-center px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-700/50 transition-all duration-200 backdrop-blur-sm"
+            >
+              <Eye className="h-5 w-5 mr-2" />
+              Preview
+            </button>
+            <button
+              onClick={handleSubmit}
+              className="inline-flex items-center px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 shadow-lg"
+            >
+              <Save className="h-5 w-5 mr-2" />
+              Save Course
+            </button>
           </div>
         </div>
 
-        {/* Pricing Section */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <h2 className="text-lg font-medium text-slate-900 dark:text-white">
-              Pricing & Payment
-            </h2>
-            <button
-              type="button"
-              onClick={() => setShowPaymentSettings(!showPaymentSettings)}
-              className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
-            >
-              <CreditCard className="h-4 w-4 mr-2" />
-              Payment Settings
-            </button>
+        {/* Tabs */}
+        <GlassCard className="mb-8">
+          <div className="flex space-x-8 border-b border-white/20 dark:border-slate-700/50">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+                    activeTab === tab.id
+                      ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                      : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {tab.name}
+                </button>
+              );
+            })}
           </div>
+        </GlassCard>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Course Price
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <DollarSign className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  type="number"
-                  value={courseData.price}
-                  onChange={(e) =>
-                    setCourseData({ ...courseData, price: e.target.value })
-                  }
-                  className="block w-full pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  placeholder="0.00"
-                  required
-                  disabled={courseData.isFree}
-                />
+        {/* Form Content */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {activeTab === "basic" && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Form */}
+              <div className="lg:col-span-2 space-y-6">
+                <GlassCard className="p-6">
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                    <BookOpen className="h-5 w-5" />
+                    Course Information
+                  </h2>
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Course Title
+                      </label>
+                      <input
+                        type="text"
+                        value={courseData.title}
+                        onChange={(e) =>
+                          setCourseData({ ...courseData, title: e.target.value })
+                        }
+                        className="w-full px-3 py-2 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-all duration-300"
+                        placeholder="Enter course title"
+                        required
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Category
+                        </label>
+                        <select
+                          value={courseData.category}
+                          onChange={(e) =>
+                            setCourseData({ ...courseData, category: e.target.value })
+                          }
+                          className="w-full px-3 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-all duration-300 backdrop-blur-sm"
+                          required
+                        >
+                          <option value="">Select a category</option>
+                          <option value="Healthcare">Healthcare</option>
+                          <option value="AI & ML">AI & ML</option>
+                          <option value="Data Science">Data Science</option>
+                          <option value="Ethics">Ethics</option>
+                          <option value="Anatomy">Anatomy</option>
+                          <option value="Physiology">Physiology</option>
+                          <option value="Nursing">Nursing</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Level
+                        </label>
+                        <select
+                          value={courseData.level}
+                          onChange={(e) =>
+                            setCourseData({ ...courseData, level: e.target.value })
+                          }
+                          className="w-full px-3 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-all duration-300 backdrop-blur-sm"
+                          required
+                        >
+                          <option value="">Select a level</option>
+                          <option value="Beginner">Beginner</option>
+                          <option value="Intermediate">Intermediate</option>
+                          <option value="Advanced">Advanced</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Description
+                      </label>
+                      <textarea
+                        value={courseData.description}
+                        onChange={(e) =>
+                          setCourseData({ ...courseData, description: e.target.value })
+                        }
+                        rows={4}
+                        className="w-full px-3 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-all duration-300 backdrop-blur-sm"
+                        placeholder="Enter course description"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Tags
+                      </label>
+                      <input
+                        type="text"
+                        value={courseData.tags}
+                        onChange={(e) =>
+                          setCourseData({ ...courseData, tags: e.target.value })
+                        }
+                        className="w-full px-3 py-2 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-all duration-300"
+                        placeholder="Enter tags separated by commas"
+                      />
+                    </div>
+                  </div>
+                </GlassCard>
+              </div>
+
+              {/* Sidebar */}
+              <div className="space-y-6">
+                <GlassCard className="p-6">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <ImageIcon className="h-5 w-5" />
+                    Course Thumbnail
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-6 text-center hover:border-blue-500 dark:hover:border-blue-400 transition-colors">
+                      <Upload className="h-8 w-8 text-slate-400 mx-auto mb-2" />
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        Click to upload or drag and drop
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                        PNG, JPG up to 10MB
+                      </p>
+                    </div>
+                  </div>
+                </GlassCard>
+
+                <GlassCard className="p-6">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Course Settings
+                  </h3>
+                  <div className="space-y-4">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={courseData.isFree}
+                        onChange={(e) =>
+                          setCourseData({ ...courseData, isFree: e.target.checked })
+                        }
+                        className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="ml-2 text-sm text-slate-700 dark:text-slate-300">
+                        Free Course
+                      </span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={courseData.featured}
+                        onChange={(e) =>
+                          setCourseData({ ...courseData, featured: e.target.checked })
+                        }
+                        className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="ml-2 text-sm text-slate-700 dark:text-slate-300">
+                        Featured Course
+                      </span>
+                    </label>
+                  </div>
+                </GlassCard>
               </div>
             </div>
+          )}
 
-            <div className="flex items-center space-x-4">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={courseData.isFree}
-                  onChange={(e) =>
-                    setCourseData({ ...courseData, isFree: e.target.checked })
-                  }
-                  className="rounded border-slate-300 dark:border-slate-600 text-teal-500 focus:ring-teal-500"
-                />
-                <span className="ml-2 text-sm text-slate-700 dark:text-slate-300">
-                  Free Course
-                </span>
-              </label>
+          {activeTab === "content" && (
+            <GlassCard className="p-6">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Course Content
+              </h2>
+              <div className="space-y-6">
+                {courseData.modules.map((module, index) => (
+                  <div key={module.id} className="border border-slate-200 dark:border-slate-700 rounded-lg p-6 bg-white/30 dark:bg-slate-800/30 backdrop-blur-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-medium text-slate-900 dark:text-white">
+                        Module {index + 1}
+                      </h3>
+                      {courseData.modules.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeModule(index)}
+                          className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Module Title
+                        </label>
+                        <input
+                          type="text"
+                          value={module.title}
+                          onChange={(e) => handleModuleChange(index, "title", e.target.value)}
+                          className="w-full px-3 py-2 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-all duration-300"
+                          placeholder="Enter module title"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Description
+                        </label>
+                        <textarea
+                          value={module.description}
+                          onChange={(e) => handleModuleChange(index, "description", e.target.value)}
+                          rows={3}
+                          className="w-full px-3 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-all duration-300 backdrop-blur-sm"
+                          placeholder="Enter module description"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            Duration
+                          </label>
+                          <input
+                            type="text"
+                            value={module.duration}
+                            onChange={(e) => handleModuleChange(index, "duration", e.target.value)}
+                            className="w-full px-3 py-2 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-all duration-300"
+                            placeholder="e.g., 45 minutes"
+                          />
+                        </div>
+                        <div className="flex items-center">
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={module.isPreview}
+                              onChange={(e) => handleModuleChange(index, "isPreview", e.target.checked)}
+                              className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="ml-2 text-sm text-slate-700 dark:text-slate-300">
+                              Preview Module
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addModule}
+                  className="w-full p-4 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-slate-600 dark:text-slate-400 hover:border-blue-500 dark:hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                >
+                  <Plus className="h-6 w-6 mx-auto mb-2" />
+                  Add Module
+                </button>
+              </div>
+            </GlassCard>
+          )}
 
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={courseData.featured}
-                  onChange={(e) =>
-                    setCourseData({ ...courseData, featured: e.target.checked })
-                  }
-                  className="rounded border-slate-300 dark:border-slate-600 text-teal-500 focus:ring-teal-500"
-                />
-                <span className="ml-2 text-sm text-slate-700 dark:text-slate-300">
-                  Featured Course
-                </span>
-              </label>
-            </div>
-
-            {showPaymentSettings && (
-              <div className="md:col-span-2 space-y-4">
-                <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-                  <h3 className="text-md font-medium text-slate-900 dark:text-white mb-4">
-                    Payment Settings
-                  </h3>
+          {activeTab === "pricing" && (
+            <GlassCard className="p-6">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                <DollarSign className="h-5 w-5" />
+                Pricing & Payment
+              </h2>
+              <div className="space-y-6">
+                {!courseData.isFree && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      Price
+                    </label>
+                    <input
+                      type="number"
+                      value={courseData.price}
+                      onChange={(e) =>
+                        setCourseData({ ...courseData, price: e.target.value })
+                      }
+                      className="w-full px-3 py-2 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-all duration-300"
+                      placeholder="Enter course price"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                )}
+                
+                <div className="space-y-4">
+                  <h3 className="text-md font-medium text-slate-900 dark:text-white">Payment Settings</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -296,15 +467,14 @@ export default function CreateCoursePage() {
                             },
                           })
                         }
-                        className="block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        className="w-full px-3 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-all duration-300 backdrop-blur-sm"
                       >
-                        <option value="NGN">Nigerian Naira (NGN)</option>
-                        <option value="USD">US Dollar (USD)</option>
-                        <option value="EUR">Euro (EUR)</option>
-                        <option value="GBP">British Pound (GBP)</option>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
+                        <option value="NGN">NGN</option>
                       </select>
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                         Payment Method
@@ -320,289 +490,97 @@ export default function CreateCoursePage() {
                             },
                           })
                         }
-                        className="block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        className="w-full px-3 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-all duration-300 backdrop-blur-sm"
                       >
+                        <option value="stripe">Stripe</option>
+                        <option value="paypal">PayPal</option>
                         <option value="flutterwave">Flutterwave</option>
                       </select>
                     </div>
-
-                    <div className="md:col-span-2">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={courseData.paymentDetails.enableInstallments}
-                          onChange={(e) =>
-                            setCourseData({
-                              ...courseData,
-                              paymentDetails: {
-                                ...courseData.paymentDetails,
-                                enableInstallments: e.target.checked,
-                              },
-                            })
-                          }
-                          className="rounded border-slate-300 dark:border-slate-600 text-teal-500 focus:ring-teal-500"
-                        />
-                        <span className="ml-2 text-sm text-slate-700 dark:text-slate-300">
-                          Enable Installment Payments
-                        </span>
-                      </label>
-                    </div>
-
-                    {courseData.paymentDetails.enableInstallments && (
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                          Maximum Installments
-                        </label>
-                        <select
-                          value={courseData.paymentDetails.maxInstallments}
-                          onChange={(e) =>
-                            setCourseData({
-                              ...courseData,
-                              paymentDetails: {
-                                ...courseData.paymentDetails,
-                                maxInstallments: parseInt(e.target.value),
-                              },
-                            })
-                          }
-                          className="block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                        >
-                          <option value="2">2 installments</option>
-                          <option value="3">3 installments</option>
-                          <option value="4">4 installments</option>
-                          <option value="6">6 installments</option>
-                        </select>
-                      </div>
-                    )}
-
-                    <div className="md:col-span-2">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={courseData.paymentDetails.earlyBirdDiscount}
-                          onChange={(e) =>
-                            setCourseData({
-                              ...courseData,
-                              paymentDetails: {
-                                ...courseData.paymentDetails,
-                                earlyBirdDiscount: e.target.checked,
-                              },
-                            })
-                          }
-                          className="rounded border-slate-300 dark:border-slate-600 text-teal-500 focus:ring-teal-500"
-                        />
-                        <span className="ml-2 text-sm text-slate-700 dark:text-slate-300">
-                          Enable Early Bird Discount
-                        </span>
-                      </label>
-                    </div>
-
-                    {courseData.paymentDetails.earlyBirdDiscount && (
-                      <>
-                        <div>
-                          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                            Early Bird Price
-                          </label>
-                          <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                              <DollarSign className="h-5 w-5 text-slate-400" />
-                            </div>
-                            <input
-                              type="number"
-                              value={courseData.paymentDetails.earlyBirdPrice}
-                              onChange={(e) =>
-                                setCourseData({
-                                  ...courseData,
-                                  paymentDetails: {
-                                    ...courseData.paymentDetails,
-                                    earlyBirdPrice: e.target.value,
-                                  },
-                                })
-                              }
-                              className="block w-full pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                              placeholder="0.00"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                            Early Bird End Date
-                          </label>
-                          <input
-                            type="date"
-                            value={courseData.paymentDetails.earlyBirdEndDate}
-                            onChange={(e) =>
-                              setCourseData({
-                                ...courseData,
-                                paymentDetails: {
-                                  ...courseData.paymentDetails,
-                                  earlyBirdEndDate: e.target.value,
-                                },
-                              })
-                            }
-                            className="block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          />
-                        </div>
-                      </>
-                    )}
                   </div>
                 </div>
               </div>
-            )}
-          </div>
-        </div>
+            </GlassCard>
+          )}
 
-        {/* Modules Section */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <h2 className="text-lg font-medium text-slate-900 dark:text-white">
-              Course Modules
-            </h2>
-            <button
-              type="button"
-              onClick={addModule}
-              className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Module
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            {courseData.modules.map((module) => (
-              <div
-                key={module.id}
-                className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
-                  <h3 className="text-md font-medium text-slate-900 dark:text-white">
-                    Module {module.id}
-                  </h3>
-                  <div className="flex items-center space-x-2">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={module.isPreview}
-                        onChange={(e) =>
-                          handleModuleChange(module.id - 1, "isPreview", e.target.checked)
-                        }
-                        className="rounded border-slate-300 dark:border-slate-600 text-teal-500 focus:ring-teal-500"
-                      />
-                      <span className="ml-2 text-sm text-slate-700 dark:text-slate-300">
-                        Preview
-                      </span>
-                    </label>
-                    {courseData.modules.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeModule(module.id - 1)}
-                        className="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300"
-                      >
-                        <X className="h-5 w-5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {activeTab === "settings" && (
+            <GlassCard className="p-6">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Advanced Settings
+              </h2>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Module Title
-                    </label>
-                    <input
-                      type="text"
-                      value={module.title}
-                      onChange={(e) =>
-                        handleModuleChange(module.id - 1, "title", e.target.value)
-                      }
-                      className="block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      placeholder="Enter module title"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Duration
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Clock className="h-5 w-5 text-slate-400" />
-                      </div>
-                      <input
-                        type="text"
-                        value={module.duration}
-                        onChange={(e) =>
-                          handleModuleChange(module.id - 1, "duration", e.target.value)
-                        }
-                        className="block w-full pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                        placeholder="e.g., 45 minutes"
-                        required
-                      />
+                    <h3 className="text-md font-medium text-slate-900 dark:text-white mb-4">Course Visibility</h3>
+                    <div className="space-y-3">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="ml-2 text-sm text-slate-700 dark:text-slate-300">
+                          Publish immediately
+                        </span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="ml-2 text-sm text-slate-700 dark:text-slate-300">
+                          Allow reviews
+                        </span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="ml-2 text-sm text-slate-700 dark:text-slate-300">
+                          Enable discussions
+                        </span>
+                      </label>
                     </div>
                   </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Description
-                    </label>
-                    <textarea
-                      value={module.description}
-                      onChange={(e) =>
-                        handleModuleChange(module.id - 1, "description", e.target.value)
-                      }
-                      rows={2}
-                      className="block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      placeholder="Enter module description"
-                      required
-                    />
-                  </div>
-
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Video Lecture
-                    </label>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        type="button"
-                        className="flex items-center px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload Video
-                      </button>
-                      {module.video && (
-                        <span className="text-sm text-slate-500 dark:text-slate-400">
-                          Video uploaded
+                    <h3 className="text-md font-medium text-slate-900 dark:text-white mb-4">Access Control</h3>
+                    <div className="space-y-3">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="ml-2 text-sm text-slate-700 dark:text-slate-300">
+                          Require enrollment
                         </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      PDF Material
-                    </label>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        type="button"
-                        className="flex items-center px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload PDF
-                      </button>
-                      {module.pdf && (
-                        <span className="text-sm text-slate-500 dark:text-slate-400">
-                          PDF uploaded
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="ml-2 text-sm text-slate-700 dark:text-slate-300">
+                          Limit access time
                         </span>
-                      )}
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="ml-2 text-sm text-slate-700 dark:text-slate-300">
+                          Certificate on completion
+                        </span>
+                      </label>
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </form>
+            </GlassCard>
+          )}
+        </form>
+      </div>
 
       {/* Preview Modal */}
       {showPreview && (

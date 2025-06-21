@@ -1,5 +1,8 @@
 import { getProfile } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
+import { AdminNavbar } from '@/components/admin/AdminNavbar';
+import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import { PresenceTrackerWrapper } from '@/components/admin/PresenceTrackerWrapper';
 
 export default async function AdminLayout({
   children,
@@ -18,8 +21,24 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="admin-layout" data-user-id={profile.id}>
-      {children}
-    </div>
+    <>
+      {profile && <PresenceTrackerWrapper profile={profile} />}
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <AdminNavbar
+          profile={{
+            ...profile,
+            full_name: profile.full_name ?? undefined,
+            username: profile.username ?? undefined,
+            email: profile.email ?? undefined,
+            avatar_url: profile.avatar_url ?? undefined,
+            role: profile.role ?? undefined,
+          }}
+        />
+        <AdminSidebar />
+        <main className="pt-16 lg:pl-64 transition-all duration-300">
+          {children}
+        </main>
+      </div>
+    </>
   );
 }

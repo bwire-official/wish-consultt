@@ -3,184 +3,134 @@
 import { useState } from "react";
 import { GlassCard } from "@/components/ui/glass-card";
 import {
-  Star,
-  Filter,
-  Download,
   MessageSquare,
+  Reply,
+  Send,
+  Star,
+  Clock,
+  CheckCircle,
+  AlertCircle,
   Smile,
   Meh,
   Frown,
-  BarChart2,
-  Clock,
-  CheckCircle,
+  ArrowLeft,
+  Save,
   Search,
-  Send,
-  ArrowUpRight,
-  ArrowDownRight,
-  RefreshCw
+  Download
 } from "lucide-react";
 import Image from "next/image";
 
-interface Feedback {
+interface FeedbackResponse {
   id: string;
-  created_at: string;
-  course_id: string;
-  course_name: string;
-  segment_id: string;
-  segment_name: string;
-  student_id: string;
+  feedback_id: string;
   student_name: string;
-  student_avatar: string | null;
+  student_avatar: string;
+  course_name: string;
   rating: number;
   comment: string;
   sentiment: "positive" | "neutral" | "negative";
   date: string;
   status: "pending" | "responded" | "resolved" | "archived";
-  tags: string[];
-  priority: "low" | "medium" | "high";
   admin_response?: string;
   response_date?: string;
+  tags: string[];
+  priority: "low" | "medium" | "high";
 }
 
-// Mock data for feedback
-const mockFeedback: Feedback[] = [
+const feedbackResponses: FeedbackResponse[] = [
   {
     id: "1",
-    created_at: new Date().toISOString(),
-    course_id: "1",
-    course_name: "Introduction to Medical Ethics",
-    segment_id: "1",
-    segment_name: "Basic Principles",
-    student_id: "101",
+    feedback_id: "fb_001",
     student_name: "John Doe",
     student_avatar: "https://i.pravatar.cc/40?img=1",
-    rating: 5,
-    comment: "Excellent explanation of the core principles. The examples were very helpful.",
+    course_name: "Introduction to Healthcare Analytics",
+    rating: 4,
+    comment: "Great course content, but the video quality could be improved. Some sections were hard to follow due to audio issues.",
     sentiment: "positive",
     date: "2024-03-15T10:30:00",
     status: "pending",
-    tags: ["clear", "engaging", "practical"],
-    priority: "low"
+    tags: ["video quality", "audio", "content"],
+    priority: "medium"
   },
   {
     id: "2",
-    created_at: new Date().toISOString(),
-    course_id: "1",
-    course_name: "Introduction to Medical Ethics",
-    segment_id: "2",
-    segment_name: "Case Studies",
-    student_id: "102",
+    feedback_id: "fb_002",
     student_name: "Jane Smith",
     student_avatar: "https://i.pravatar.cc/40?img=2",
-    rating: 4,
-    comment: "Good case studies, but could use more real-world examples.",
-    sentiment: "neutral",
-    date: "2024-03-15T09:15:00",
-    status: "responded",
-    tags: ["case studies", "needs improvement"],
-    priority: "medium",
-    admin_response: "Thank you for your feedback. We'll add more real-world examples in the next update.",
-    response_date: "2024-03-15T14:30:00"
-  },
-  {
-    id: "3",
-    created_at: new Date().toISOString(),
-    course_id: "2",
     course_name: "Advanced Medical AI Applications",
-    segment_id: "3",
-    segment_name: "AI Diagnosis",
-    student_id: "103",
-    student_name: "Mike Johnson",
-    student_avatar: "https://i.pravatar.cc/40?img=3",
     rating: 2,
-    comment: "The course was too advanced for the advertised beginner level. I struggled to keep up.",
+    comment: "The course was too advanced for the advertised beginner level. I struggled to keep up and felt overwhelmed.",
     sentiment: "negative",
-    date: "2024-03-14T16:45:00",
-    status: "pending",
+    date: "2024-03-14T15:45:00",
+    status: "responded",
+    admin_response: "Thank you for your feedback. We're reviewing the course difficulty and will make adjustments to better match the target audience.",
+    response_date: "2024-03-15T09:15:00",
     tags: ["difficulty", "beginner", "overwhelming"],
     priority: "high"
   },
   {
-    id: "4",
-    created_at: new Date().toISOString(),
-    course_id: "3",
+    id: "3",
+    feedback_id: "fb_003",
+    student_name: "Mike Johnson",
+    student_avatar: "https://i.pravatar.cc/40?img=3",
     course_name: "Healthcare Data Science Fundamentals",
-    segment_id: "4",
-    segment_name: "Data Analysis",
-    student_id: "104",
-    student_name: "Sarah Wilson",
-    student_avatar: "https://i.pravatar.cc/40?img=4",
     rating: 5,
-    comment: "Amazing course! The instructor was very clear and the practical examples were excellent.",
+    comment: "Excellent course! The instructor was very clear and the practical examples were very helpful.",
     sentiment: "positive",
-    date: "2024-03-14T12:20:00",
+    date: "2024-03-13T12:20:00",
     status: "resolved",
-    tags: ["instructor", "examples", "excellent"],
-    priority: "low",
     admin_response: "Thank you for the positive feedback! We're glad you found the course helpful.",
-    response_date: "2024-03-14T15:30:00"
+    response_date: "2024-03-13T14:30:00",
+    tags: ["instructor", "examples", "helpful"],
+    priority: "low"
   },
   {
-    id: "5",
-    created_at: new Date().toISOString(),
-    course_id: "4",
+    id: "4",
+    feedback_id: "fb_004",
+    student_name: "Sarah Wilson",
+    student_avatar: "https://i.pravatar.cc/40?img=4",
     course_name: "Medical Ethics in AI Era",
-    segment_id: "5",
-    segment_name: "Ethical Considerations",
-    student_id: "105",
-    student_name: "David Brown",
-    student_avatar: "https://i.pravatar.cc/40?img=5",
     rating: 3,
-    comment: "The content was good but the platform had some technical issues. Videos wouldn't load properly.",
+    comment: "The content was good but the platform had some technical issues. Videos wouldn't load properly sometimes.",
     sentiment: "neutral",
-    date: "2024-03-13T08:15:00",
+    date: "2024-03-12T08:15:00",
     status: "pending",
     tags: ["technical", "platform", "videos"],
     priority: "medium"
   }
 ];
 
-export default function FeedbackPage() {
+export default function FeedbackResponsePage() {
+  const [selectedFeedback, setSelectedFeedback] = useState<FeedbackResponse | null>(null);
+  const [responseText, setResponseText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
-  const [selectedSentiment, setSelectedSentiment] = useState("all");
   const [selectedPriority, setSelectedPriority] = useState("all");
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
-  const [responseText, setResponseText] = useState("");
 
   const stats = [
     {
-      name: "Total Feedback",
-      value: mockFeedback.length.toString(),
-      change: "+12.5%",
-      trend: "up",
-      icon: MessageSquare,
-      gradient: "from-blue-500 to-cyan-500"
-    },
-    {
-      name: "Pending Reviews",
-      value: mockFeedback.filter(f => f.status === "pending").length.toString(),
-      change: "+3",
-      trend: "up",
+      name: "Pending Responses",
+      value: feedbackResponses.filter(f => f.status === "pending").length.toString(),
       icon: Clock,
       gradient: "from-yellow-500 to-orange-500"
     },
     {
-      name: "Average Rating",
-      value: (mockFeedback.reduce((sum, f) => sum + f.rating, 0) / mockFeedback.length).toFixed(1),
-      change: "+0.3",
-      trend: "up",
-      icon: Star,
+      name: "Responded",
+      value: feedbackResponses.filter(f => f.status === "responded").length.toString(),
+      icon: Reply,
+      gradient: "from-blue-500 to-cyan-500"
+    },
+    {
+      name: "Resolved",
+      value: feedbackResponses.filter(f => f.status === "resolved").length.toString(),
+      icon: CheckCircle,
       gradient: "from-green-500 to-emerald-500"
     },
     {
-      name: "Response Rate",
-      value: "94.2%",
-      change: "+2.1%",
-      trend: "up",
-      icon: CheckCircle,
-      gradient: "from-purple-500 to-pink-500"
+      name: "High Priority",
+      value: feedbackResponses.filter(f => f.priority === "high").length.toString(),
+      icon: AlertCircle,
+      gradient: "from-red-500 to-pink-500"
     },
   ];
 
@@ -212,23 +162,14 @@ export default function FeedbackPage() {
     }
   };
 
-  const getTrendColor = (trend: string) => {
-    return trend === "up" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400";
-  };
-
-  const getTrendIcon = (trend: string) => {
-    return trend === "up" ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />;
-  };
-
-  const filteredFeedback = mockFeedback.filter((feedback) => {
-    const matchesSearch =
-      feedback.student_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      feedback.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      feedback.course_name.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredFeedback = feedbackResponses.filter(feedback => {
+    const matchesSearch = feedback.student_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         feedback.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         feedback.course_name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = selectedStatus === "all" || feedback.status === selectedStatus;
-    const matchesSentiment = selectedSentiment === "all" || feedback.sentiment === selectedSentiment;
     const matchesPriority = selectedPriority === "all" || feedback.priority === selectedPriority;
-    return matchesSearch && matchesStatus && matchesSentiment && matchesPriority;
+    
+    return matchesSearch && matchesStatus && matchesPriority;
   });
 
   const handleSendResponse = () => {
@@ -253,20 +194,16 @@ export default function FeedbackPage() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg">
-                <MessageSquare className="h-6 w-6 text-white" />
+                <Reply className="h-6 w-6 text-white" />
               </div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Feedback & Reviews</h1>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Feedback Responses</h1>
             </div>
-            <p className="text-slate-600 dark:text-slate-300">Monitor and respond to user feedback</p>
+            <p className="text-slate-600 dark:text-slate-300">Manage and respond to user feedback</p>
           </div>
           <div className="flex items-center gap-3">
             <button className="inline-flex items-center px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-white/30 dark:hover:bg-slate-700/50 transition-all duration-200 backdrop-blur-sm">
               <Download className="h-5 w-5 mr-2" />
               Export
-            </button>
-            <button className="inline-flex items-center px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 shadow-lg">
-              <BarChart2 className="h-5 w-5 mr-2" />
-              Analytics
             </button>
           </div>
         </div>
@@ -278,10 +215,6 @@ export default function FeedbackPage() {
               <div className="flex items-center justify-between mb-4">
                 <div className={`w-12 h-12 bg-gradient-to-r ${stat.gradient} rounded-xl flex items-center justify-center shadow-lg`}>
                   <stat.icon className="h-6 w-6 text-white" />
-                </div>
-                <div className={`flex items-center gap-1 text-sm font-semibold ${getTrendColor(stat.trend)}`}>
-                  {getTrendIcon(stat.trend)}
-                  <span>{stat.change}</span>
                 </div>
               </div>
               <div>
@@ -315,59 +248,30 @@ export default function FeedbackPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-3">
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center gap-2 px-4 py-3 bg-white/70 dark:bg-slate-800/70 border border-slate-200/50 dark:border-slate-600/50 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white/90 dark:hover:bg-slate-700/90 transition-all duration-200 backdrop-blur-sm"
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    className="px-3 py-3 bg-white/70 dark:bg-slate-800/70 border border-slate-200/50 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-all duration-300 backdrop-blur-sm"
                   >
-                    <Filter className="h-4 w-4" />
-                    <span className="hidden sm:inline">Filters</span>
-                  </button>
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="responded">Responded</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="archived">Archived</option>
+                  </select>
 
-                  <button className="px-3 py-3 bg-white/70 dark:bg-slate-800/70 border border-slate-200/50 dark:border-slate-600/50 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white/90 dark:hover:bg-slate-700/90 transition-all duration-200 backdrop-blur-sm">
-                    <RefreshCw className="h-4 w-4" />
-                  </button>
+                  <select
+                    value={selectedPriority}
+                    onChange={(e) => setSelectedPriority(e.target.value)}
+                    className="px-3 py-3 bg-white/70 dark:bg-slate-800/70 border border-slate-200/50 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-all duration-300 backdrop-blur-sm"
+                  >
+                    <option value="all">All Priority</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
                 </div>
               </div>
-
-              {showFilters && (
-                <div className="mb-6 pt-4 border-t border-white/20 dark:border-slate-700/50">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <select
-                      value={selectedStatus}
-                      onChange={(e) => setSelectedStatus(e.target.value)}
-                      className="px-3 py-2 bg-white/70 dark:bg-slate-800/70 border border-slate-200/50 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                    >
-                      <option value="all">All Status</option>
-                      <option value="pending">Pending</option>
-                      <option value="responded">Responded</option>
-                      <option value="resolved">Resolved</option>
-                      <option value="archived">Archived</option>
-                    </select>
-
-                    <select
-                      value={selectedSentiment}
-                      onChange={(e) => setSelectedSentiment(e.target.value)}
-                      className="px-3 py-2 bg-white/70 dark:bg-slate-800/70 border border-slate-200/50 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                    >
-                      <option value="all">All Sentiment</option>
-                      <option value="positive">Positive</option>
-                      <option value="neutral">Neutral</option>
-                      <option value="negative">Negative</option>
-                    </select>
-
-                    <select
-                      value={selectedPriority}
-                      onChange={(e) => setSelectedPriority(e.target.value)}
-                      className="px-3 py-2 bg-white/70 dark:bg-slate-800/70 border border-slate-200/50 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                    >
-                      <option value="all">All Priority</option>
-                      <option value="high">High</option>
-                      <option value="medium">Medium</option>
-                      <option value="low">Low</option>
-                    </select>
-                  </div>
-                </div>
-              )}
 
               <div className="space-y-4">
                 {filteredFeedback.map((feedback) => (
@@ -383,7 +287,7 @@ export default function FeedbackPage() {
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <Image
-                          src={feedback.student_avatar || "https://i.pravatar.cc/40?img=1"}
+                          src={feedback.student_avatar}
                           alt={feedback.student_name}
                           width={40}
                           height={40}
@@ -439,6 +343,12 @@ export default function FeedbackPage() {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Respond to Feedback</h3>
+                    <button
+                      onClick={() => setSelectedFeedback(null)}
+                      className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
                   </div>
 
                   <div className="space-y-4">
@@ -463,6 +373,9 @@ export default function FeedbackPage() {
                       >
                         <Send className="h-4 w-4" />
                         Send Response
+                      </button>
+                      <button className="px-3 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <Save className="h-4 w-4" />
                       </button>
                     </div>
 
@@ -501,4 +414,4 @@ export default function FeedbackPage() {
       </div>
     </div>
   );
-}
+} 
