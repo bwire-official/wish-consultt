@@ -58,7 +58,7 @@ To get a local copy up and running, follow these simple steps.
 1.  **Clone the repository:**
     ```bash
     git clone [https://github.com/bwire-official/wish-consultt.git](https://github.com/bwire-official/wish-consultt.git)
-    cd wish-consult
+    cd wish-consultt
     ```
 
 2.  **Install NPM packages:**
