@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Lock, User, ArrowRight, Sun, Moon, Home } from "lucide-react";
+import { Lock, User, ArrowRight, Sun, Moon, Home, Eye, EyeOff, Shield,} from "lucide-react";
 import { useTheme } from "next-themes";
 import { login } from '../../auth/actions/actions';
 import { ButtonLoader } from '@/components/ui/loaders';
@@ -11,18 +11,32 @@ import { ButtonLoader } from '@/components/ui/loaders';
 function LoginForm() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const searchParams = useSearchParams();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Check for error message in URL params
+    // Check for message and status in URL params
     const message = searchParams.get('message');
+    const status = searchParams.get('status');
+    
+    console.log('Login page URL params:', { message, status });
+    
     if (message) {
-      setError(message);
+      if (status === 'success') {
+        console.log('Setting success message:', message);
+        setSuccess(message);
+        setError("");
+      } else {
+        console.log('Setting error message:', message);
+        setError(message);
+        setSuccess("");
+      }
     }
   }, [searchParams]);
 
@@ -96,6 +110,13 @@ function LoginForm() {
               <p className="text-slate-600 dark:text-slate-300 mt-2 text-lg">Sign in to your account</p>
             </div>
             
+            {/* Success Message */}
+            {success && (
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 backdrop-blur-sm">
+                <p className="text-green-600 dark:text-green-400 text-sm font-medium">{success}</p>
+              </div>
+            )}
+            
             {/* Error Message */}
             {error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 backdrop-blur-sm">
@@ -136,13 +157,24 @@ function LoginForm() {
                   <input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-teal-500 dark:focus:border-teal-400 transition-colors text-lg"
+                    className="w-full pl-10 pr-12 py-3 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-teal-500 dark:focus:border-teal-400 transition-colors text-lg"
                     placeholder="Enter your password"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                    )}
+                  </button>
                 </div>
               </div>
 
@@ -207,6 +239,14 @@ function LoginForm() {
             
             <div className="text-xs text-center text-slate-500 dark:text-slate-400">
               By signing in, you agree to our <Link href="/terms" className="underline hover:text-teal-500 dark:hover:text-teal-400 transition-colors">terms</Link> and <Link href="/privacy" className="underline hover:text-teal-500 dark:hover:text-teal-400 transition-colors">policies</Link>.
+            </div>
+            
+            {/* Secure Login Indicator */}
+            <div className="flex items-center justify-center gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <Shield className="h-4 w-4 text-green-500" />
+                <span>Secure login with SSL encryption</span>
+              </div>
             </div>
           </div>
         </div>

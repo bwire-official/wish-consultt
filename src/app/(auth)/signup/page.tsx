@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Mail, Lock, User, ArrowRight, Sun, Moon, Home } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Sun, Moon, Home, Eye, EyeOff, Shield } from "lucide-react";
 import { useTheme } from "next-themes";
 import { signup } from '../../auth/actions/actions'
 import { ButtonLoader } from '@/components/ui/loaders';
@@ -15,6 +15,8 @@ export default function SignupPage() {
     password: "",
     confirmPassword: ""
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -176,13 +178,24 @@ export default function SignupPage() {
                   <input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-teal-500 dark:focus:border-teal-400 transition-colors text-lg"
+                    className="w-full pl-10 pr-12 py-3 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-teal-500 dark:focus:border-teal-400 transition-colors text-lg"
                     placeholder="Create a password"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                    )}
+                  </button>
                 </div>
               </div>
 
@@ -197,13 +210,24 @@ export default function SignupPage() {
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-teal-500 dark:focus:border-teal-400 transition-colors text-lg"
+                    className="w-full pl-10 pr-12 py-3 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-teal-500 dark:focus:border-teal-400 transition-colors text-lg"
                     placeholder="Confirm your password"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                    )}
+                  </button>
                 </div>
               </div>
 
@@ -247,7 +271,15 @@ export default function SignupPage() {
             </form>
             
             <div className="text-xs text-center text-slate-500 dark:text-slate-400">
-              By creating an account, you agree to our <Link href="/terms" className="underline hover:text-teal-500 dark:hover:text-teal-400 transition-colors">terms</Link> and <Link href="/privacy" className="underline hover:text-teal-500 dark:hover:text-teal-400 transition-colors">policies</Link>.
+              By signing up, you agree to our <Link href="/terms" className="underline hover:text-teal-500 dark:hover:text-teal-400 transition-colors">terms</Link> and <Link href="/privacy" className="underline hover:text-teal-500 dark:hover:text-teal-400 transition-colors">policies</Link>.
+            </div>
+            
+            {/* Secure Login Indicator */}
+            <div className="flex items-center justify-center gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <Shield className="h-4 w-4 text-green-500" />
+                <span>Secure signup with SSL encryption</span>
+              </div>
             </div>
           </div>
         </div>

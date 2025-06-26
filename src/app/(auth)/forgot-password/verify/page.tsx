@@ -3,17 +3,27 @@
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { User, ArrowRight, Sun, Moon, Home, Shield } from "lucide-react";
+import { ArrowRight, Sun, Moon, Home, ArrowLeft, Shield } from "lucide-react";
 import { useTheme } from "next-themes";
 import { ButtonLoader } from '@/components/ui/loaders';
-import { requestPasswordReset } from '../../auth/actions/actions';
+import { verifyPasswordResetCode } from '../../../auth/actions/actions';
 
-function ForgotPasswordForm() {
-  const [identifier, setIdentifier] = useState("");
+// Utility to mask email for privacy
+function maskEmail(email: string) {
+  const [user, domain] = email.split('@');
+  const maskedUser = user.length <= 2 ? user[0] + '*' : user[0] + '*'.repeat(user.length - 2) + user[user.length - 1];
+  const [domainName, tld] = domain.split('.');
+  const maskedDomain = domainName[0] + '*'.repeat(Math.max(domainName.length - 2, 1)) + domainName.slice(-1);
+  return `${maskedUser}@${maskedDomain}.${tld}`;
+}
+
+function VerifyCodeContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { theme, setTheme } = useTheme();
   const searchParams = useSearchParams();
+  const email = searchParams.get('email');
+  const [codeDigits, setCodeDigits] = useState(["", "", "", "", "", ""]);
 
   useEffect(() => { 
     // Check for error message in URL params
@@ -23,23 +33,75 @@ function ForgotPasswordForm() {
     }
   }, [searchParams]);
 
-  const handleSendCode = async (e: React.FormEvent) => {
+  const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
       const formData = new FormData();
-      formData.set('identity', identifier);
+      formData.set('email', email!);
+      formData.set('token', codeDigits.join(""));
       
-      await requestPasswordReset(formData);
+      await verifyPasswordResetCode(formData);
       // The server action will handle the redirect
     } catch (error) {
-      console.error('Error sending reset code:', error);
+      console.error('Error verifying code:', error);
       setError('An unexpected error occurred. Please try again.');
       setLoading(false);
     }
   };
+
+  const handleResendCode = () => {
+    // TODO: Implement resend functionality
+    console.log('Resending code to:', email);
+  };
+
+  const handleDigitChange = (idx: number, value: string) => {
+    if (!/^[0-9]?$/.test(value)) return;
+    const newDigits = [...codeDigits];
+    newDigits[idx] = value;
+    setCodeDigits(newDigits);
+    setError("");
+    if (value && idx < 5) {
+      const nextInput = document.getElementById(`code-digit-${idx + 1}`);
+      if (nextInput) (nextInput as HTMLInputElement).focus();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const paste = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (paste.length === 6) {
+      setCodeDigits(paste.split(""));
+      setError("");
+      const lastInput = document.getElementById('code-digit-5');
+      if (lastInput) (lastInput as HTMLInputElement).focus();
+      e.preventDefault();
+    }
+  };
+
+  const code = codeDigits.join("");
+
+  if (!email) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-950 px-4 py-8">
+        <div className="max-w-md w-full mx-auto">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Invalid Request</h1>
+            <p className="text-slate-600 dark:text-slate-400 mb-6">
+              No email address provided. Please start the password reset process again.
+            </p>
+            <Link 
+              href="/forgot-password"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-500 text-white rounded-xl font-semibold hover:from-teal-600 hover:to-blue-600 transition-all duration-300"
+            >
+              Go to Forgot Password
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-950 px-4 py-8">
@@ -60,7 +122,13 @@ function ForgotPasswordForm() {
           {/* Main card */}
           <div className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl p-8 space-y-6">
             <div className="flex justify-between items-start">
-              <div></div>
+              <Link 
+                href="/forgot-password"
+                className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Link>
               <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 className="p-3 rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-slate-200 dark:border-slate-700"
@@ -76,10 +144,10 @@ function ForgotPasswordForm() {
             
             <div className="text-center mb-6">
               <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
-                Reset your password
+                Enter verification code
               </h1>
               <p className="text-slate-600 dark:text-slate-300 mt-2 text-lg">
-                Enter your email or username to receive a 6-digit verification code
+                We&apos;ve sent a 6-digit code to <span className="font-mono tracking-wide text-slate-800 dark:text-slate-100">{maskEmail(email!)}</span>
               </p>
             </div>
             
@@ -90,57 +158,63 @@ function ForgotPasswordForm() {
               </div>
             )}
             
-            <form onSubmit={handleSendCode} className="space-y-6">
+            <form onSubmit={handleVerifyCode} className="space-y-6">
+              {/* Hidden input for email */}
+              <input type="hidden" name="email" value={email || ''} />
+              
               <div className="space-y-2">
-                <label htmlFor="identifier" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  Email or Username
+                <label htmlFor="code" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  6-Digit Verification Code
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-slate-400 dark:text-slate-500" />
-                  </div>
-                  <input
-                    id="identifier"
-                    name="identity"
-                    type="text"
-                    required
-                    value={identifier}
-                    onChange={(e) => {
-                      setIdentifier(e.target.value);
-                      setError(""); // Clear error when user types
-                    }}
-                    className="w-full pl-10 pr-4 py-3 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-teal-500 dark:focus:border-teal-400 transition-colors text-lg"
-                    placeholder="Enter your email or username"
-                  />
+                <div className="flex justify-center gap-2 mt-2" onPaste={handlePaste}>
+                  {codeDigits.map((digit, idx) => (
+                    <input
+                      key={idx}
+                      id={`code-digit-${idx}`}
+                      name={idx === 0 ? "token" : ""}
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={1}
+                      value={digit}
+                      onChange={e => handleDigitChange(idx, e.target.value)}
+                      onFocus={e => e.target.select()}
+                      className="w-12 h-14 rounded-xl bg-white/60 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 text-2xl text-center font-mono shadow-md focus:outline-none focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-600 transition-all duration-200 backdrop-blur-md hover:scale-105 focus:scale-110"
+                    />
+                  ))}
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 text-center mt-2">
+                  Enter the 6-digit code sent to your email for verification of your email address for password reset
                 </div>
               </div>
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || code.length !== 6}
                 className="w-full flex justify-center items-center gap-2 py-3 px-6 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02]"
               >
                 {loading ? (
                   <>
                     <ButtonLoader />
-                    Sending code...
+                    Verifying code...
                   </>
                 ) : (
                   <>
-                    Send verification code
+                    Verify Code
                     <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
               </button>
 
               <div className="text-center text-sm">
-                <span className="text-slate-600 dark:text-slate-400">Remember your password? </span>
-                <Link 
-                  href="/login"
+                <span className="text-slate-600 dark:text-slate-400">Didn&apos;t receive the code? </span>
+                <button 
+                  type="button"
+                  onClick={handleResendCode}
                   className="text-teal-500 hover:text-teal-600 dark:text-teal-400 dark:hover:text-teal-300 font-semibold transition-colors"
                 >
-                  Sign in
-                </Link>
+                  Resend
+                </button>
               </div>
             </form>
             
@@ -152,7 +226,7 @@ function ForgotPasswordForm() {
             <div className="flex items-center justify-center gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
               <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                 <Shield className="h-4 w-4 text-green-500" />
-                <span>Secure password reset with SSL encryption</span>
+                <span>Secure verification with SSL encryption</span>
               </div>
             </div>
           </div>
@@ -162,7 +236,7 @@ function ForgotPasswordForm() {
   );
 }
 
-export default function ForgotPasswordPage() {
+export default function VerifyCodePage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-950 px-4 py-8">
@@ -174,7 +248,7 @@ export default function ForgotPasswordPage() {
         </div>
       </div>
     }>
-      <ForgotPasswordForm />
+      <VerifyCodeContent />
     </Suspense>
   );
 } 

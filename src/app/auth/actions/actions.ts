@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { supabaseAdmin } from '@/lib/supabase/service' // We will use the admin client
+import { supabaseAdmin } from '@/lib/supabase/service' 
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 
@@ -335,4 +335,109 @@ export async function signupSimple(formData: FormData) {
     console.error('Unexpected error:', error);
     return redirect('/signup?message=Unexpected error occurred.');
   }
+}
+
+/**
+ * Handles Step 1 of the password reset flow.
+ * Checks if a user exists and sends them a 6-digit OTP code.
+ */
+export async function requestPasswordReset(formData: FormData) {
+  const identity = formData.get('identity') as string;
+  const supabase = createClient();
+  let emailToReset: string | null = null;
+  let userRole: string | null = null;
+
+  // 1. Find the user by either email or username
+  let profileQuery = supabase.from('profiles').select('email, role');
+  if (identity.includes('@')) {
+    profileQuery = profileQuery.eq('email', identity);
+  } else {
+    profileQuery = profileQuery.eq('username', identity);
+  }
+  
+  const { data: profile, error: profileError } = await profileQuery.single();
+
+  // 2. Handle cases where the user does not exist
+  if (profileError || !profile) {
+    console.error("User not found:", profileError);
+    return redirect('/forgot-password?message=User with this identity does not exist.');
+  }
+  
+  emailToReset = profile.email;
+  userRole = profile.role;
+
+  // 3. Handle affiliate users by redirecting them
+  if (userRole === 'affiliate') {
+    return redirect('/affiliate/forgot-password?message=Please use the affiliate portal for password reset.');
+  }
+
+  // 4. If everything is correct, send the password reset OTP
+  if (emailToReset) {
+    const { error } = await supabase.auth.resetPasswordForEmail(emailToReset);
+    
+    if (error) {
+      console.error("Error sending password reset OTP:", error);
+      return redirect('/forgot-password?message=Could not send reset code. Please try again.');
+    }
+
+    // Success! Redirect to the code verification step.
+    // We pass the email along so the next form knows who is verifying.
+    return redirect(`/forgot-password/verify?email=${encodeURIComponent(emailToReset)}`);
+  }
+
+  return redirect('/forgot-password?message=An unexpected error occurred.');
+}
+
+/**
+ * Handles Step 2 of the password reset flow.
+ * Verifies that the 6-digit OTP is correct for the given email.
+ */
+export async function verifyPasswordResetCode(formData: FormData) {
+  const email = formData.get('email') as string;
+  const token = formData.get('token') as string;
+  const supabase = createClient();
+
+  if (!email || !token) {
+    return redirect(`/forgot-password/verify?email=${email}&message=Email and code are required.`);
+  }
+
+  // Use the 'recovery' type for password reset verification
+  const { error } = await supabase.auth.verifyOtp({
+    type: 'recovery',
+    email,
+    token,
+  });
+
+  // If Supabase returns an error, the code was wrong or expired.
+  if (error) {
+    console.error("Password Reset Code Verification Error:", error);
+    return redirect(`/forgot-password/verify?email=${email}&message=Invalid or expired code. Please try again.`);
+  }
+
+  // SUCCESS! The code was correct.
+  // Redirect to the final step: the page to set a new password.
+  // We pass the email along so the final form knows which user to update.
+  return redirect(`/reset-password?email=${encodeURIComponent(email)}`);
+}
+
+/**
+ * Handles Step 3 of the password reset flow.
+ * Updates the user's password after they've verified their OTP code.
+ */
+export async function updateUserPassword(formData: FormData) {
+  const password = formData.get('password') as string;
+  const supabase = createClient();
+
+  // Supabase automatically uses the secure session created
+  // during OTP verification to know which user to update.
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    console.error("Final Password Update Error:", error);
+    // Redirect back to the start of the flow with an error
+    return redirect('/forgot-password?message=Failed to update password. Please try again.');
+  }
+
+  // Success! The password has been changed.
+  return redirect('/login?message=Password updated successfully. Please log in.&status=success');
 } 

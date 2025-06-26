@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
@@ -17,8 +17,6 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png',
   },
   manifest: '/manifest.json',
-  themeColor: '#6366f1',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=5',
   robots: {
     index: true,
     follow: true,
@@ -36,6 +34,13 @@ export const metadata: Metadata = {
     title: 'Wish Consult - Healthcare Education & Consultancy',
     description: 'Empowering healthcare professionals with comprehensive education, expert consultancy, and cutting-edge courses.',
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#6366f1',
 };
 
 export default function RootLayout({
