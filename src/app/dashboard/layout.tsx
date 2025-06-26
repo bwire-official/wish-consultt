@@ -2,6 +2,7 @@ import { getProfile } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import { DashboardNavbar } from '@/components/dashboard/DashboardNavbar';
 import { PresenceTrackerWrapper } from '@/components/admin/PresenceTrackerWrapper';
+import TopProgressBar from '@/components/dashboard/TopProgressBar';
 
 export default async function DashboardLayout({
   children,
@@ -23,6 +24,7 @@ export default async function DashboardLayout({
     <>
       {profile && <PresenceTrackerWrapper profile={profile} />}
       <div className="dashboard-layout" data-user-id={profile.id}>
+        <TopProgressBar />
         <DashboardNavbar
           profile={{
             ...profile,

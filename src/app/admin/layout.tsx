@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { AdminNavbar } from '@/components/admin/AdminNavbar';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { PresenceTrackerWrapper } from '@/components/admin/PresenceTrackerWrapper';
+import AdminPageLoader from '@/components/admin/AdminPageLoader';
 
 export default async function AdminLayout({
   children,
@@ -24,6 +25,7 @@ export default async function AdminLayout({
     <>
       {profile && <PresenceTrackerWrapper profile={profile} />}
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <AdminPageLoader />
         <AdminNavbar
           profile={{
             ...profile,
