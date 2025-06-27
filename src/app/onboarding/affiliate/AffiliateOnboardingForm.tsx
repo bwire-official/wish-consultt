@@ -358,11 +358,14 @@ export default function AffiliateOnboardingForm({
                       src={URL.createObjectURL(formData.profilePicture)}
                       alt="Profile preview"
                       className="w-full h-full rounded-full object-cover"
-                      // eslint-disable-next-line @next/next/no-img-element
                     />
                   ) : (
                     <div className="text-center">
-                      <User className="h-8 w-8 text-purple-400 dark:text-purple-500 mx-auto mb-2" />
+                      <img
+                        src="/globe.svg"
+                        alt="Globe icon"
+                        className="w-6 h-6"
+                      />
                       <p className="text-xs text-purple-600 dark:text-purple-400">Upload Photo</p>
                     </div>
                   )}

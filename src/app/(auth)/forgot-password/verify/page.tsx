@@ -6,32 +6,68 @@ import { useSearchParams } from "next/navigation";
 import { ArrowRight, Sun, Moon, Home, ArrowLeft, Shield } from "lucide-react";
 import { useTheme } from "next-themes";
 import { ButtonLoader } from '@/components/ui/loaders';
-import { verifyPasswordResetCode } from '../../../auth/actions/actions';
+import { verifyPasswordResetCode, requestPasswordReset } from '../../../auth/actions/actions';
 
-// Utility to mask email for privacy
+// Utility to mask email for privacy - more professional approach
 function maskEmail(email: string) {
   const [user, domain] = email.split('@');
-  const maskedUser = user.length <= 2 ? user[0] + '*' : user[0] + '*'.repeat(user.length - 2) + user[user.length - 1];
+  
+  // For username part: show first 2 characters and last character, mask the middle
+  let maskedUser;
+  if (user.length <= 3) {
+    maskedUser = user; // Show full username if 3 characters or less
+  } else if (user.length <= 5) {
+    maskedUser = user[0] + '*'.repeat(user.length - 2) + user[user.length - 1]; // Show first and last
+  } else {
+    maskedUser = user.slice(0, 2) + '*'.repeat(Math.max(user.length - 4, 1)) + user.slice(-2); // Show first 2 and last 2
+  }
+  
+  // For domain part: show first 2 characters and last character, mask the middle
   const [domainName, tld] = domain.split('.');
-  const maskedDomain = domainName[0] + '*'.repeat(Math.max(domainName.length - 2, 1)) + domainName.slice(-1);
+  let maskedDomain;
+  if (domainName.length <= 3) {
+    maskedDomain = domainName; // Show full domain if 3 characters or less
+  } else if (domainName.length <= 5) {
+    maskedDomain = domainName[0] + '*'.repeat(domainName.length - 2) + domainName[domainName.length - 1];
+  } else {
+    maskedDomain = domainName.slice(0, 2) + '*'.repeat(Math.max(domainName.length - 4, 1)) + domainName.slice(-2);
+  }
+  
   return `${maskedUser}@${maskedDomain}.${tld}`;
 }
 
 function VerifyCodeContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [resendCountdown, setResendCountdown] = useState(0);
   const { theme, setTheme } = useTheme();
   const searchParams = useSearchParams();
   const email = searchParams.get('email');
   const [codeDigits, setCodeDigits] = useState(["", "", "", "", "", ""]);
 
   useEffect(() => { 
-    // Check for error message in URL params
+    // Check for message and status in URL params
     const message = searchParams.get('message');
+    const status = searchParams.get('status');
+    
     if (message) {
-      setError(message);
+      if (status === 'success') {
+        setSuccess(message);
+        setError("");
+      } else {
+        setError(message);
+        setSuccess("");
+      }
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (resendCountdown > 0) {
+      const timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCountdown]);
 
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,8 +89,15 @@ function VerifyCodeContent() {
   };
 
   const handleResendCode = () => {
-    // TODO: Implement resend functionality
-    console.log('Resending code to:', email);
+    if (resendCountdown > 0) return;
+    
+    setResendCountdown(60);
+    const formData = new FormData();
+    formData.set('identity', email!);
+    formData.set('resend', 'true'); // Add resend parameter
+    
+    // The server action will handle the redirect back to this page
+    requestPasswordReset(formData);
   };
 
   const handleDigitChange = (idx: number, value: string) => {
@@ -158,6 +201,13 @@ function VerifyCodeContent() {
               </div>
             )}
             
+            {/* Success Message */}
+            {success && (
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 backdrop-blur-sm">
+                <p className="text-green-600 dark:text-green-400 text-sm font-medium">{success}</p>
+              </div>
+            )}
+            
             <form onSubmit={handleVerifyCode} className="space-y-6">
               {/* Hidden input for email */}
               <input type="hidden" name="email" value={email || ''} />
@@ -211,9 +261,10 @@ function VerifyCodeContent() {
                 <button 
                   type="button"
                   onClick={handleResendCode}
-                  className="text-teal-500 hover:text-teal-600 dark:text-teal-400 dark:hover:text-teal-300 font-semibold transition-colors"
+                  disabled={resendCountdown > 0}
+                  className="text-teal-500 hover:text-teal-600 dark:text-teal-400 dark:hover:text-teal-300 font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Resend
+                  {resendCountdown > 0 ? `Resend in ${resendCountdown}s` : 'Resend'}
                 </button>
               </div>
             </form>

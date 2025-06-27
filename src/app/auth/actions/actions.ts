@@ -4,6 +4,9 @@ import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/service' 
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
+import * as brevo from '@getbrevo/brevo';
+import { render } from '@react-email/render';
+import { PasswordResetNoticeEmail } from '@/components/emails/PasswordResetNotice';
 
 // --- SIGNUP ACTION ---
 export async function signup(formData: FormData) {
@@ -252,7 +255,7 @@ export async function updatePassword(formData: FormData) {
     return redirect("/auth-code-error");
   }
 
-  return redirect("/dashboard");
+  return redirect('/login?message=Password updated successfully. Please log in.&status=success');
 }
 
 export async function resendVerificationEmail(email: string) {
@@ -382,7 +385,10 @@ export async function requestPasswordReset(formData: FormData) {
 
     // Success! Redirect to the code verification step.
     // We pass the email along so the next form knows who is verifying.
-    return redirect(`/forgot-password/verify?email=${encodeURIComponent(emailToReset)}`);
+    // Check if this is a resend request by looking for a resend parameter
+    const isResend = formData.get('resend') === 'true';
+    const successMessage = isResend ? '&message=Verification code has been resent successfully.&status=success' : '';
+    return redirect(`/forgot-password/verify?email=${encodeURIComponent(emailToReset)}${successMessage}`);
   }
 
   return redirect('/forgot-password?message=An unexpected error occurred.');
@@ -428,16 +434,47 @@ export async function updateUserPassword(formData: FormData) {
   const password = formData.get('password') as string;
   const supabase = createClient();
 
-  // Supabase automatically uses the secure session created
-  // during OTP verification to know which user to update.
+  // Step 1: Get the current user's details before updating
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return redirect('/forgot-password?message=Authentication session expired.');
+  }
+
+  // Step 2: Update the password in Supabase Auth
   const { error } = await supabase.auth.updateUser({ password });
 
   if (error) {
     console.error("Final Password Update Error:", error);
-    // Redirect back to the start of the flow with an error
-    return redirect('/forgot-password?message=Failed to update password. Please try again.');
+    const message = error.message || 'Failed to update password.';
+    return redirect(`/forgot-password/reset?message=${encodeURIComponent(message)}`);
   }
 
-  // Success! The password has been changed.
+  // --- NEW: Send Security Notification via Brevo ---
+  // Step 3: On success, send the security alert email.
+  try {
+    const api = new brevo.TransactionalEmailsApi();
+    api.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY!);
+    
+    // Convert our React component to an HTML string
+    const emailHtml = await render(
+      await PasswordResetNoticeEmail({
+        userFullName: user.user_metadata.full_name,
+        resetTime: new Date().toUTCString(),
+      })
+    );
+
+    await api.sendTransacEmail({
+      sender: { email: 'security@mail.wishconsult.app', name: 'Wish Consult Security' },
+      to: [{ email: user.email! }],
+      subject: 'Security Alert: Your Wish Consult Password Was Changed',
+      htmlContent: emailHtml,
+    });
+
+  } catch (emailError) {
+    console.error("Failed to send password reset notice via Brevo:", emailError);
+    // Do not block the user if the email fails. Just log the error.
+  }
+  
+  // Step 4: Redirect to login with a success message.
   return redirect('/login?message=Password updated successfully. Please log in.&status=success');
-} 
+};
