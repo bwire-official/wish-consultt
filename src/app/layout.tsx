@@ -56,7 +56,8 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#6366f1" />
-        <script defer data-domain="wishconsult.app" src="https://plausible.io/js/script.js"></script>
+        <script defer data-domain="wishconsult.app" src="https://plausible.io/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js"></script>
+        <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
       </head>
       <body className={inter.className} suppressHydrationWarning>
         <Providers>
