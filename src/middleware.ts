@@ -15,6 +15,10 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith('/verify-email') ||
       pathname.startsWith('/forgot-password') ||
       pathname.startsWith('/auth/callback') ||
+      pathname.startsWith('/affiliate/login') ||
+      pathname.startsWith('/affiliate/signup') ||
+      pathname.startsWith('/affiliate/verify-email') ||
+      pathname.startsWith('/affiliate/forgot-password') ||
       pathname === '/' ||
       pathname.startsWith('/api/')) {
     return response
@@ -30,6 +34,21 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/login', request.url))
     } else {
       console.log('USER FOUND in middleware. Allowing access.'); // Success Log
+    }
+  }
+
+  // Protect affiliate routes (dashboard, onboarding, and main affiliate page)
+  if (pathname.startsWith('/affiliate/dashboard') || 
+      pathname.startsWith('/onboarding/affiliate') ||
+      pathname === '/affiliate') {
+    console.log('Affiliate protected route detected. Checking for affiliate session...');
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      console.log('NO USER FOUND for affiliate route. Redirecting to /affiliate/login.');
+      return NextResponse.redirect(new URL('/affiliate/login', request.url))
+    } else {
+      console.log('USER FOUND for affiliate route. Allowing access.');
     }
   }
 

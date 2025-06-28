@@ -70,7 +70,7 @@ export async function updateAnnouncement(id: number, formData: FormData) {
       tags: tags ? JSON.parse(tags) : [],
       updated_at: new Date().toISOString(),
     })
-    .eq('id', id.toString());
+    .eq('id', id);
 
   if (error) {
     console.error("Error updating announcement:", error);
@@ -95,7 +95,7 @@ export async function archiveAnnouncement(id: number) {
       status: 'archived',
       archived_at: new Date().toISOString(),
     })
-    .eq('id', id.toString());
+    .eq('id', id);
 
   if (error) {
     console.error("Error archiving announcement:", error);
@@ -120,7 +120,7 @@ export async function restoreAnnouncement(id: number) {
       status: 'draft',
       archived_at: null,
     })
-    .eq('id', id.toString());
+    .eq('id', id);
 
   if (error) {
     console.error("Error restoring announcement:", error);
@@ -142,7 +142,7 @@ export async function deleteAnnouncement(id: number) {
   const { error } = await supabaseAdmin
     .from('announcements')
     .delete()
-    .eq('id', id.toString());
+    .eq('id', id);
 
   if (error) {
     console.error("Error deleting announcement:", error);
@@ -167,7 +167,7 @@ export async function publishAnnouncement(id: number) {
       status: 'published',
       published_at: new Date().toISOString(),
     })
-    .eq('id', id.toString());
+    .eq('id', id);
 
   if (error) {
     console.error("Error publishing announcement:", error);

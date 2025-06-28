@@ -7,10 +7,10 @@ import Image from "next/image";
 
 interface User {
   id: string;
-  full_name: string;
-  email: string;
+  full_name: string | null;
+  email: string | null;
   role: string;
-  avatar_url?: string;
+  avatar_url: string | null;
 }
 
 interface UserSelectorProps {
@@ -75,7 +75,7 @@ export default function UserSelector({
 
   const handleUserSelect = (user: User) => {
     setSelectedUser(user);
-    setSearchQuery(user.full_name);
+    setSearchQuery(user.full_name || user.email || 'Unknown User');
     setShowDropdown(false);
     setUsers([]);
     
@@ -153,7 +153,7 @@ export default function UserSelector({
                 {user.avatar_url ? (
                   <Image 
                     src={user.avatar_url} 
-                    alt={user.full_name}
+                    alt={user.full_name || user.email || 'User'}
                     className="w-8 h-8 rounded-full object-cover"
                     width={32}
                     height={32}
@@ -164,10 +164,10 @@ export default function UserSelector({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-slate-900 dark:text-white truncate">
-                  {user.full_name}
+                  {user.full_name || user.email || 'Unknown User'}
                 </div>
                 <div className="text-sm text-slate-500 dark:text-slate-400 truncate">
-                  {user.email}
+                  {user.email || 'No email'}
                 </div>
               </div>
               <div className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full capitalize">

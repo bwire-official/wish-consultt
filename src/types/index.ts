@@ -9,7 +9,7 @@ export interface Profile {
   role: string;
   status: string;
   onboarding_data: Record<string, unknown> | null;
-  referred_by: string | null;
+  invited_by: string | null;
   avatar_url: string | null;
   is_premium: boolean;
   onboarding_completed: boolean;

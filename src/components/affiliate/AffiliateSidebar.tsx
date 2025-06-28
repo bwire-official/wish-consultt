@@ -1,5 +1,9 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from '@/lib/supabase/client';
+import { InlineLoader } from '@/components/ui/loaders';
 import { 
   Home, 
   Users, 
@@ -23,6 +27,20 @@ interface AffiliateSidebarProps {
 
 export default function AffiliateSidebar({ isOpen, onToggle }: AffiliateSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      await supabase.auth.signOut();
+      router.push('/affiliate/login');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      setIsSigningOut(false); // Re-enable button on error
+    }
+  };
 
   const navigationItems = [
     {
@@ -129,9 +147,22 @@ export default function AffiliateSidebar({ isOpen, onToggle }: AffiliateSidebarP
 
         {/* Footer */}
         <div className="p-4 border-t border-slate-200 dark:border-slate-700 lg:border-white/20 lg:dark:border-slate-700/20 flex-shrink-0">
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hover:bg-white/20 lg:dark:hover:bg-slate-800/20 transition-all duration-200">
-            <LogOut className="h-5 w-5" />
-            <span className="font-semibold">Sign Out</span>
+          <button 
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 lg:hover:bg-red-50/50 lg:dark:hover:bg-red-900/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSigningOut ? (
+              <>
+                <InlineLoader width={20} />
+                <span className="font-semibold">Signing out...</span>
+              </>
+            ) : (
+              <>
+                <LogOut className="h-5 w-5" />
+                <span className="font-semibold">Sign Out</span>
+              </>
+            )}
           </button>
         </div>
       </div>

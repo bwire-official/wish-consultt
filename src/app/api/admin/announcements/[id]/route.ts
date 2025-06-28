@@ -36,7 +36,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('announcements')
       .delete()
-      .eq('id', announcementId.toString());
+      .eq('id', announcementId);
 
     if (error) {
       console.error('Error deleting announcement:', error);

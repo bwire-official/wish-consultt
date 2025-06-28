@@ -1,81 +1,120 @@
-Affiliate Onboarding Wizard: A Step-by-Step Plan
-Goal: To properly set up a new affiliate partner, collect their promotional and payment information, and provide them with their unique referral link so they can start earning.
+Affiliate Onboarding Wizard: The Definitive Plan
+Objective: To provide a professional and welcoming setup experience for new partners, establish their unique identity on the platform, and equip them with their first invite code so they can start earning immediately.
 
-Step 1: Welcome & Introduction
-What it is: A clean, professional welcome screen that appears the first time they log in.
+Step 1: Welcome to the Partnership
+Purpose: To set a professional tone and confirm the user's successful account creation. This isn't just another user; it's a partner.
 
-Purpose: To welcome them as a new partner and briefly explain that the next few steps are to set up their affiliate account.
+UI Elements:
 
-UI:
+Headline: Good afternoon [ person name] Welcome  to the Wish Consult Partner Program!
 
-Headline: Welcome to the Wish Consult Affiliate Program!
+Sub-headline: Let's set up your partner account. It'll just take a moment.
 
-Short text: "Let's set up your partner account. It'll just take a moment to get you ready to start earning."
+Primary Button: [ Begin Setup ]
 
-A single button: [ Begin Setup ]
+Step 2: Create Your Public Identity
+Purpose: To establish their unique public profile on the platform. This includes their username, which is the foundation for their default invite code, and a profile picture to personalize their account.
 
-Step 2: Choose Your Public Identity
-What it is: A screen to set up their public-facing username.
+UI Elements:
 
-Purpose: This is crucial. The username gives them a unique identity on the platform and can be used for a vanity referral link.
+Headline: Create Your Public Identity
 
-UI:
+Profile Picture Upload:
 
-Headline: Choose Your Unique Username
+An uploader component for their avatar_url.
 
-Username Input:
+Justification: A profile picture makes the affiliate feel more connected to the platform and builds trust with potential customers who might see their profile.
 
-A text field for username.
+Username Input Field:
 
-The UI should suggest options based on their full name.
+A text input for their unique username.
 
-Crucially, it must perform a live check against the database to ensure the username is not already taken.
+Crucial Functionality: Must perform a live database check to ensure the username is not already taken.
 
-A [ Next ] button.
+Primary Button: [ Confirm & Continue ]
 
-Step 3: Tell Us About Your Audience
-What it is: A short form to understand how they will promote the platform.
+Step 3: Tell Us About Yourself (Optional)
+Purpose: To gather optional demographic and contact information. This is purely for your internal business analytics to help you understand your affiliate base and tailor your marketing efforts.
 
-Purpose: This is for you, the admin. It helps you understand your marketers and ensures they are a good fit for your brand.
-
-UI:
-
-Headline: How Will You Promote Us?
-
-Website/Social Media Link (Optional): A text field for their primary URL.
-
-Promotion Method (Dropdown or Checkboxes): Blog, Social Media, YouTube, etc.
-
-A [ Next ] button.
-
-Step 4: Tell Us About Yourself (Optional)
-What it is: A step to collect optional demographic information.
-
-Purpose: For internal analytics to help you understand your affiliate base.
-
-UI:
+UI Elements:
 
 Headline: About You (Optional)
 
-Nationality (Dropdown of countries)
+Phone Number:
 
-Gender (Selectable options: Male, Female, Prefer not to say)
+An input for their phone_number.
 
-A clear [ Save & Continue ] button and a highly visible [ Skip This Step ] link.
+Justification: Allows for an alternative contact method for high-value partners or urgent support issues.
 
-Step 5: Your Link is Ready!
-What it is: The final "reward" screen.
+Region/Country:
 
-Purpose: To confirm their setup is complete and provide them with their referral link. Payout details will be requested later within their dashboard when they initiate a withdrawal.
+A dropdown menu for their region.
 
-UI:
+Justification: Helps you understand where your most successful affiliates are located.
 
-Big checkmark icon ✅
+Gender & Age Range:
 
-Headline: You're Ready to Start Earning!
+Selectable options for gender and age.
 
-The Referral Link Display: A read-only text box with their link and a [ Copy Link ] button.
+Justification: Provides valuable demographic data for your marketing strategy.
 
-A final button: [ Go to My Affiliate Dashboard ]
+Navigation: A primary [ Save & Continue ] button and a highly visible [ Skip This Step ] link.
 
-This structured flow ensures you get everything you need, and the affiliate feels professionally onboarded and ready for success.
+Step 4: Tell Us How You'll Promote
+Purpose: To understand the affiliate's marketing strategy and ensure they are a good fit for the brand.
+
+UI Elements:
+
+Headline: How will you share Wish Consult?
+
+Website or Social Media Link:
+
+A text field for their primary URL.
+
+Justification: This is the most important field in this step. It allows you to vet the affiliate by seeing their content and audience firsthand.
+
+Promotion Methods (Checkboxes):
+
+[ ] Blog or Website
+
+[ ] YouTube Channel
+
+[ ] Social Media
+
+[ ] Email Newsletter
+
+Primary Button: [ Next ]
+
+Step 5: Final Agreement
+Purpose: A simple, final legal checkpoint before they are granted access to their tools.
+
+UI Elements:
+
+Headline: Review & Agree to Terms
+
+Link: A clear link to your Affiliate Terms & Conditions page.
+
+Checkbox: A mandatory checkbox: [ ] I have read and agree to the Wish Consult Affiliate Program Terms.
+
+Primary Button: [ Complete Setup & Get My Invite Code ] (This button is disabled until the checkbox is ticked).
+
+Step 6: Setup Complete! Here Are Your Tools.
+Purpose: The "reward" for completing the wizard. This screen provides instant value and a clear call to action.
+
+UI Elements:
+
+A large checkmark icon ✅ and a congratulatory headline: Setup Complete! You're Ready to Earn.
+
+The Invite Code Display:
+
+A prominent section titled Your Default Invite Code.
+
+The system will automatically generate their first code based on their chosen username (e.g., if username is Bwire, the code is BWIRE25).
+
+A read-only text box displaying their full default invite link: https://wishconsult.app/?invite=BWIRE25.
+
+A [ Copy Link ] button right next to it.
+
+Final Action: A primary button: [ Go to My Affiliate Dashboard ]
+
+This flow is now much more comprehensive and professional, setting both you and your new partner up for success.

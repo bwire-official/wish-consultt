@@ -12,7 +12,7 @@ interface Announcement {
   status: string
   priority: string
   target_audience: string
-  created_at: string
+  created_at: string | null
   scheduled_for: string | null
   views: number
   engagement_rate: number
@@ -53,6 +53,7 @@ export default function AnnouncementsDisplay() {
               content: a.content || '',
               priority: String(a.priority),
               target_audience: String(a.target_audience),
+              created_at: a.created_at || null,
               scheduled_for:
                 typeof a.scheduled_for === 'string'
                   ? a.scheduled_for
@@ -99,7 +100,8 @@ export default function AnnouncementsDisplay() {
     }
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'No date'
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',

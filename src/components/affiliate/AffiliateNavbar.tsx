@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { createClient } from '@/lib/supabase/client';
+import { InlineLoader } from '@/components/ui/loaders';
 import { 
   Menu, 
   Bell, 
@@ -17,74 +21,38 @@ import {
 // import Link from "next/link";
 //import { GlassCard } from "@/components/ui/glass-card";
 
-interface Profile {
+interface AffiliateProfile {
   id: string;
-  full_name: string;
-  username: string;
+  full_name: string | null;
+  username: string | null;
   role: string;
-  email: string;
+  email: string | null;
+  avatar_url: string | null;
 }
 
 interface AffiliateNavbarProps {
-  profile: Profile;
+  profile: AffiliateProfile;
   onSidebarToggle: () => void;
   isDarkMode: boolean;
   onThemeToggle: () => void;
 }
 
-interface Notification {
-  id: string;
-  type: 'info' | 'warning' | 'success' | 'error';
-  title: string;
-  message: string;
-  time: string;
-  read: boolean;
-}
+
 
 export function AffiliateNavbar({ profile, onSidebarToggle, isDarkMode, onThemeToggle }: AffiliateNavbarProps) {
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSigningOut, setIsSigningOut] = useState(false);
   
-  const notificationsRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const supabase = createClient();
 
-  // Mock notifications
-  const notifications: Notification[] = [
-    {
-      id: "1",
-      type: "success",
-      title: "New Commission Earned",
-      message: "You earned $45.00 from invite #1234",
-      time: "2 hours ago",
-      read: false
-    },
-    {
-      id: "2",
-      type: "info",
-      title: "New Invite Signed Up",
-      message: "John Doe joined through your blog link",
-      time: "5 hours ago",
-      read: false
-    },
-    {
-      id: "3",
-      type: "warning",
-      title: "Payment Pending",
-      message: "Your payout request is being processed",
-      time: "1 day ago",
-      read: true
-    }
-  ];
 
-  const unreadCount = notifications.filter(n => !n.read).length;
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
-        setShowNotifications(false);
-      }
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setShowUserMenu(false);
       }
@@ -94,13 +62,23 @@ export function AffiliateNavbar({ profile, onSidebarToggle, isDarkMode, onThemeT
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'success': return <div className="h-4 w-4 bg-green-500 rounded-full" />;
-      case 'warning': return <div className="h-4 w-4 bg-yellow-500 rounded-full" />;
-      case 'error': return <div className="h-4 w-4 bg-red-500 rounded-full" />;
-      default: return <div className="h-4 w-4 bg-blue-500 rounded-full" />;
+
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      await supabase.auth.signOut();
+      router.push('/affiliate/login');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      setIsSigningOut(false); // Re-enable button on error
     }
+  };
+
+  // Format role for display
+  const formatRole = (role: string) => {
+    if (!role) return 'User';
+    return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
   };
 
   return (
@@ -149,65 +127,63 @@ export function AffiliateNavbar({ profile, onSidebarToggle, isDarkMode, onThemeT
           )}
         </button>
 
-        {/* Notifications */}
-        <div className="relative" ref={notificationsRef}>
-          <button 
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-slate-800/20 rounded-lg transition-all duration-300 backdrop-blur-sm"
-          >
+                {/* Notifications */}
+        <div className="relative">
+          <button className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-slate-800/20 rounded-lg transition-all duration-300 backdrop-blur-sm">
             <Bell className="h-5 w-5" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                {unreadCount}
-              </span>
-            )}
           </button>
-
-          {/* Notifications Dropdown */}
-          {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 rounded-xl shadow-xl z-50">
-              <div className="p-4 border-b border-white/20 dark:border-slate-700/50">
-                <h3 className="font-semibold text-slate-900 dark:text-white">Notifications</h3>
-              </div>
-              <div className="max-h-96 overflow-y-auto">
-                {notifications.map((notification) => (
-                  <div key={notification.id} className={`p-4 border-b border-white/20 dark:border-slate-700/50 ${!notification.read ? 'bg-purple-50 dark:bg-purple-900/20' : ''}`}>
-                    <div className="flex items-start gap-3">
-                      {getNotificationIcon(notification.type)}
-                      <div className="flex-1">
-                        <p className="font-medium text-slate-900 dark:text-white">{notification.title}</p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">{notification.message}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">{notification.time}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* User Menu */}
         <div className="relative" ref={userMenuRef}>
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-2 p-2 hover:bg-white/20 dark:hover:bg-slate-800/20 rounded-lg transition-all duration-300 backdrop-blur-sm"
+            className="flex items-center gap-3 p-2 hover:bg-white/20 dark:hover:bg-slate-800/20 rounded-lg transition-all duration-300 backdrop-blur-sm"
           >
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-semibold">
-                {profile.full_name.split(' ').map(n => n[0]).join('')}
+            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center">
+              {profile.avatar_url ? (
+                <Image
+                  src={profile.avatar_url}
+                  alt={profile.full_name || profile.username || 'User'}
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center">
+                  <span className="text-white text-sm font-semibold">
+                    {profile.full_name 
+                      ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase()
+                      : profile.username 
+                      ? profile.username.charAt(0).toUpperCase()
+                      : 'A'
+                    }
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            {/* Name and Role */}
+            <div className="flex flex-col items-start">
+              <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                {profile.full_name || profile.username || 'User'}
+              </span>
+              <span className="text-xs px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-md font-medium">
+                {formatRole(profile.role)}
               </span>
             </div>
+            
             <ChevronDown className="h-4 w-4 text-slate-600 dark:text-slate-400" />
           </button>
 
           {/* User Menu Dropdown */}
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 rounded-xl shadow-xl z-50">
-              <div className="p-4 border-b border-white/20 dark:border-slate-700/50">
-                <p className="font-semibold text-slate-900 dark:text-white">{profile.full_name}</p>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Affiliate Partner</p>
-              </div>
+            <div className="absolute right-0 mt-2 w-48 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50">
+              {profile.username && (
+                <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">@{profile.username}</p>
+                </div>
+              )}
               <div className="p-2">
                 <button className="w-full flex items-center gap-3 px-3 py-2 text-left text-slate-700 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-lg transition-all duration-200">
                   <User className="h-4 w-4" />
@@ -217,9 +193,22 @@ export function AffiliateNavbar({ profile, onSidebarToggle, isDarkMode, onThemeT
                   <Settings className="h-4 w-4" />
                   <span className="text-sm">Settings</span>
                 </button>
-                <button className="w-full flex items-center gap-3 px-3 py-2 text-left text-slate-700 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-lg transition-all duration-200">
-                  <LogOut className="h-4 w-4" />
-                  <span className="text-sm">Sign Out</span>
+                <button 
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
+                  className="w-full flex items-center gap-3 px-3 py-2 text-left text-slate-700 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSigningOut ? (
+                    <>
+                      <InlineLoader width={16} />
+                      <span className="text-sm">Logging out...</span>
+                    </>
+                  ) : (
+                    <>
+                      <LogOut className="h-4 w-4" />
+                      <span className="text-sm">Sign Out</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

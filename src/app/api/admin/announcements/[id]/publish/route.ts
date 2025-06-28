@@ -39,7 +39,7 @@ export async function POST(
         status: 'published',
         published_at: new Date().toISOString()
       })
-      .eq('id', announcementId.toString())
+      .eq('id', announcementId)
       .select()
       .single();
 

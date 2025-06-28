@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { createClient } from '@/lib/supabase/client';
 import { 
   BarChart3, 
   Users, 
@@ -12,11 +14,78 @@ import {
   MousePointer,
   Target,
   Plus,
-  ArrowUpRight
+  ArrowUpRight,
+  Sun,
+  Moon
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
 
+interface DashboardProfile {
+  full_name: string | null;
+  username: string | null;
+}
+
 export default function AffiliateDashboardPage() {
+  const [profile, setProfile] = useState<DashboardProfile | null>(null);
+  const supabase = createClient();
+
+  // Fetch user profile
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('full_name, username')
+            .eq('id', user.id)
+            .single();
+          
+          setProfile(profileData);
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+    };
+
+    fetchProfile();
+  }, [supabase]);
+
+  // Get display name for welcome message
+  const getDisplayName = () => {
+    if (profile?.full_name) {
+      return profile.full_name.split(' ')[0]; // First name only
+    }
+    if (profile?.username) {
+      return profile.username;
+    }
+    return 'Partner';
+  };
+
+  // Get time-based greeting and icon
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) {
+      return { 
+        greeting: 'Good morning', 
+        icon: Sun, 
+        bgGradient: 'from-yellow-400 to-orange-500' 
+      };
+    } else if (hour < 17) {
+      return { 
+        greeting: 'Good afternoon', 
+        icon: Sun, 
+        bgGradient: 'from-orange-400 to-red-500' 
+      };
+    } else {
+      return { 
+        greeting: 'Good evening', 
+        icon: Moon, 
+        bgGradient: 'from-indigo-500 to-purple-600' 
+      };
+    }
+  };
+
   // Mock data for the dashboard
   const stats = {
     totalInvites: 1234,
@@ -116,9 +185,17 @@ export default function AffiliateDashboardPage() {
     <div className="space-y-8">
       {/* Welcome Section */}
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-          Welcome back, <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">John!</span> 👋
-        </h1>
+        <div className="flex items-center justify-center gap-3">
+          <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
+            {getTimeBasedGreeting().greeting}, <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">{getDisplayName()}!</span>
+          </h1>
+          <div className={`w-10 h-10 bg-gradient-to-r ${getTimeBasedGreeting().bgGradient} rounded-full flex items-center justify-center shadow-lg`}>
+            {(() => {
+              const { icon: Icon } = getTimeBasedGreeting();
+              return <Icon className="h-6 w-6 text-white" />;
+            })()}
+          </div>
+        </div>
         <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
           Here&apos;s what&apos;s happening with your affiliate business today
         </p>

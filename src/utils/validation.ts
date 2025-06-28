@@ -21,7 +21,7 @@ export const registerSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   full_name: z.string().min(2, 'Full name must be at least 2 characters'),
-  referred_by: z.string().optional(),
+  invited_by: z.string().optional(),
 })
 
 // Course validation schemas

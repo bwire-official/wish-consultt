@@ -1,18 +1,34 @@
 "use client";
 
+import { Suspense } from "react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Mail, ArrowLeft, ArrowRight, Sun, Moon, Home, Award, Shield, CheckCircle, Clock, Lock } from "lucide-react";
 import { useTheme } from "next-themes";
 import { ButtonLoader } from '@/components/ui/loaders';
+import { verifyAffiliateOtp } from '../actions';
 
-export default function AffiliateVerifyEmailPage() {
+function VerifyEmailContent() {
+  const searchParams = useSearchParams();
   const [verificationCode, setVerificationCode] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(searchParams.get('message') || "");
   const [resendCountdown, setResendCountdown] = useState(0);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [countdown, setCountdown] = useState(5);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const email = searchParams.get('email') || '';
+
+  // Mask email for privacy
+  const maskEmail = (email: string) => {
+    if (!email) return '';
+    const [localPart, domain] = email.split('@');
+    if (localPart.length <= 2) return email;
+    const maskedLocal = localPart.charAt(0) + '*'.repeat(localPart.length - 2) + localPart.charAt(localPart.length - 1);
+    return `${maskedLocal}@${domain}`;
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -26,6 +42,8 @@ export default function AffiliateVerifyEmailPage() {
   }, [resendCountdown]);
 
   const handleCodeChange = (index: number, value: string) => {
+    // Only allow numbers
+    if (!/^\d*$/.test(value)) return;
     if (value.length > 1) return; // Only allow single digit
     
     const newCode = [...verificationCode];
@@ -59,10 +77,36 @@ export default function AffiliateVerifyEmailPage() {
     setError("");
 
     try {
-      // TODO: Implement verification logic
-      console.log('Verifying code:', code);
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
-      setIsLoading(false);
+      // Create FormData for the server action
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('token', code);
+
+      // Call the server action
+      const result = await verifyAffiliateOtp(formData);
+      
+      if (result.success) {
+        // Show success popup
+        setShowSuccess(true);
+        setCountdown(5);
+        
+        // Start countdown
+        const countdownInterval = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev <= 1) {
+              clearInterval(countdownInterval);
+              window.location.href = '/onboarding/affiliate';
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      } else {
+        // Show error message
+        setError(result.error || 'Verification failed. Please try again.');
+        setIsLoading(false);
+      }
+      
     } catch (error) {
       console.error('Verification error:', error);
       setError('Invalid verification code. Please try again.');
@@ -208,6 +252,16 @@ export default function AffiliateVerifyEmailPage() {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-5">
+                  {/* Email Display */}
+                  <div className="text-center">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                      Code sent to:
+                    </p>
+                    <p className="text-sm font-medium text-slate-900 dark:text-white">
+                      {maskEmail(email)}
+                    </p>
+                  </div>
+
                   {/* Verification Code Input */}
                   <div className="space-y-4">
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 text-center">
@@ -292,6 +346,45 @@ export default function AffiliateVerifyEmailPage() {
           </div>
         </div>
       </div>
+
+      {/* Success Popup */}
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 max-w-md w-full text-center shadow-2xl border border-white/20 dark:border-slate-700/50">
+            <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="h-8 w-8 text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+              Email Verified!
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400 mb-4">
+              Congratulations! Your email has been successfully verified.
+            </p>
+            <div className="text-sm text-slate-500 dark:text-slate-400">
+              Redirecting to onboarding in {countdown}...
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+function VerifyEmailFallback() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-teal-50 dark:from-slate-900 dark:via-purple-900/20 dark:to-teal-900/20 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+        <p className="text-slate-600 dark:text-slate-400">Loading verification form...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function AffiliateVerifyEmailPage() {
+  return (
+    <Suspense fallback={<VerifyEmailFallback />}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 } 

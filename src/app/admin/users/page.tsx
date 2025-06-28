@@ -29,12 +29,37 @@ import {
   X
 } from "lucide-react";
 import Image from "next/image";
-import { Profile } from '@/types';
+// Removed Profile import - using local User interface instead
 import { createClient } from "@/lib/supabase/client";
 
 async function getUsers(query: string) {
   const supabase = createClient();
-  let userQuery = supabase.from("profiles").select("*", { count: 'exact' });
+  let userQuery = supabase.from("profiles").select(`
+    id,
+    created_at,
+    updated_at,
+    username,
+    email,
+    full_name,
+    phone_number,
+    role,
+    status,
+    onboarding_data,
+    invited_by,
+    avatar_url,
+    is_premium,
+    onboarding_completed,
+    country,
+    date_of_birth,
+    education_level,
+    availability,
+    experience_level,
+    languages,
+    medical_specialties,
+    timezone,
+    social_links,
+    bio
+  `, { count: 'exact' });
 
   if (query) {
     userQuery = userQuery.or(`full_name.ilike.%${query}%,email.ilike.%${query}%,username.ilike.%${query}%`);
@@ -46,37 +71,98 @@ async function getUsers(query: string) {
     console.error("Error fetching users:", error);
     return { users: [], count: 0 };
   }
-  return { users, count: count ?? 0 };
+  
+  // Ensure all users have required Profile properties with defaults
+  const normalizedUsers = (users || []).map(user => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const u = user as any; // Safe type assertion for database result
+    return {
+      // Core Profile properties
+      id: u.id,
+      created_at: u.created_at,
+      updated_at: u.updated_at || u.created_at,
+      username: u.username || null,
+      email: u.email || null,
+      full_name: u.full_name || null,
+      phone_number: u.phone_number || null,
+      role: u.role || 'student',
+      status: u.status || 'inactive',
+      onboarding_data: u.onboarding_data || null,
+      invited_by: u.invited_by || null,
+      avatar_url: u.avatar_url || null,
+      is_premium: u.is_premium ?? false,
+      onboarding_completed: u.onboarding_completed ?? false,
+      
+      // Additional database properties
+      country: u.country || null,
+      date_of_birth: u.date_of_birth || null,
+      education_level: u.education_level || null,
+      availability: u.availability || null,
+      experience_level: u.experience_level || null,
+      languages: u.languages || null,
+      medical_specialties: u.medical_specialties || null,
+      timezone: u.timezone || null,
+      social_links: u.social_links || null,
+      bio: u.bio || null,
+    } as User;
+  });
+  
+  return { users: normalizedUsers, count: count ?? 0 };
 }
 
-interface User extends Profile {
-  avatar_url: string;
+// User type that matches database structure exactly
+interface User {
+  // Core Profile properties
+  id: string;
+  created_at: string;
+  updated_at: string;
+  username: string | null;
+  email: string | null;
+  full_name: string | null;
   phone_number: string | null;
-  location: string | null;
-  status: "active" | "inactive" | "suspended" | "warned";
-  last_active: string | null;
-  joined_date: string;
-  courses: {
+  role: string;
+  status: string;
+  onboarding_data: Record<string, unknown> | null;
+  invited_by: string | null;
+  avatar_url: string | null;
+  is_premium: boolean;
+  onboarding_completed: boolean;
+  
+  // Additional database properties
+  country: string | null;
+  date_of_birth: string | null;
+  education_level: string | null;
+  availability: string | null;
+  experience_level: string | null;
+  languages: string[] | null;
+  medical_specialties: string[] | null;
+  timezone: string | null;
+  social_links: Record<string, unknown> | null;
+  bio: string | null;
+  
+  // Optional properties for UI compatibility
+  location?: string | null;
+  last_active?: string | null;
+  joined_date?: string;
+  courses?: {
     enrolled: number;
     completed: number;
     in_progress: number;
     certificates: number;
   };
-  progress: {
+  progress?: {
     current_course: string | null;
     completion_rate: number | null;
     average_score: number | null;
     last_activity: string | null;
   };
-  preferences: {
+  preferences?: {
     language: string;
     notifications: boolean;
     theme: string;
   };
-  warnings: number;
-  last_warning: string | null;
-  is_premium: boolean;
-  onboarding_completed: boolean;
+  warnings?: number;
+  last_warning?: string | null;
 }
 
 export default function UsersPage({ searchParams }: { searchParams?: Promise<{ q?: string }> }) {
@@ -113,7 +199,7 @@ export default function UsersPage({ searchParams }: { searchParams?: Promise<{ q
     async function fetchUsers() {
       setLoading(true);
       const result = await getUsers(searchQuery);
-      setUsers(result.users as User[]);
+      setUsers(result.users || []);
       setCount(result.count);
       setLoading(false);
     }
@@ -128,7 +214,8 @@ export default function UsersPage({ searchParams }: { searchParams?: Promise<{ q
         user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.username?.toLowerCase().includes(searchQuery.toLowerCase());
       
-      const matchesStatus = selectedStatus === "all" || user.status === selectedStatus;
+      const userStatus = user.status || "inactive";
+      const matchesStatus = selectedStatus === "all" || userStatus === selectedStatus;
       const matchesRole = selectedRole === "all" || user.role === selectedRole;
       const matchesPremium = selectedPremium === "all" || 
         (selectedPremium === "premium" && user.is_premium) ||
@@ -165,7 +252,7 @@ export default function UsersPage({ searchParams }: { searchParams?: Promise<{ q
   const handleRefresh = async () => {
     setLoading(true);
     const result = await getUsers(searchQuery);
-    setUsers(result.users as User[]);
+    setUsers(result.users || []);
     setCount(result.count);
     setLoading(false);
   };
@@ -204,12 +291,12 @@ export default function UsersPage({ searchParams }: { searchParams?: Promise<{ q
           user.email,
           user.username,
           user.role,
-          user.status,
+          user.status || "inactive",
           user.is_premium ? 'Yes' : 'No',
           new Date(user.created_at).toLocaleDateString(),
           user.courses?.enrolled || 0,
           user.phone_number || '',
-          user.location || ''
+          user.location || user.country || ''
         ].join(','))
       ].join('\n');
 
@@ -249,7 +336,7 @@ export default function UsersPage({ searchParams }: { searchParams?: Promise<{ q
     },
     {
       name: "Active Today",
-      value: users.filter(u => u.status === "active").length.toString(),
+      value: users.filter(u => (u.status || "inactive") === "active").length.toString(),
       change: "+5.1%",
       trend: "up",
       icon: Activity,
@@ -534,10 +621,15 @@ export default function UsersPage({ searchParams }: { searchParams?: Promise<{ q
                             </span>
                           </td>
                           <td className="py-4 px-4">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
-                              {getStatusIcon(user.status)}
-                              <span className="ml-1 capitalize">{user.status}</span>
-                            </span>
+                            {(() => {
+                              const userStatus = user.status || "inactive";
+                              return (
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(userStatus)}`}>
+                                  {getStatusIcon(userStatus)}
+                                  <span className="ml-1 capitalize">{userStatus}</span>
+                                </span>
+                              );
+                            })()}
                           </td>
                           <td className="py-4 px-4">
                             <span className="text-sm text-slate-900 dark:text-white font-medium">

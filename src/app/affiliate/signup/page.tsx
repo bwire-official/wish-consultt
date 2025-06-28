@@ -1,16 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import PhoneInput from "react-phone-number-input";
-import "react-phone-number-input/style.css";
+import { useSearchParams } from "next/navigation";
 import { 
   Mail, 
   Lock, 
   Eye, 
   EyeOff, 
   User,  
-  Globe, 
   ArrowRight, 
   Award,
   Moon,
@@ -24,13 +23,14 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { ButtonLoader } from '@/components/ui/loaders';
+import { signupAffiliate } from '../actions';
 
-export default function AffiliateSignupPage() {
+function SignupContent() {
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     email: "",
-    phone: "",
-    website: "",
     password: "",
     confirmPassword: "",
     agreeToTerms: false
@@ -38,38 +38,54 @@ export default function AffiliateSignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(searchParams.get('message') || "");
   const [currentStep, setCurrentStep] = useState(1);
   const { theme, setTheme } = useTheme();
+
+  // Reset loading state when there's an error message in URL
+  useEffect(() => {
+    const urlMessage = searchParams.get('message');
+    if (urlMessage) {
+      setError(urlMessage);
+      setIsLoading(false);
+    }
+  }, [searchParams]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-    setError(""); // Clear error when user types
-  };
-
-  const handlePhoneChange = (value: string | undefined) => {
-    setFormData(prev => ({
-      ...prev,
-      phone: value || ""
-    }));
-    setError("");
+    // Only clear error if it's not from URL parameters (server errors)
+    if (!searchParams.get('message')) {
+      setError(""); // Clear error when user types
+    }
   };
 
   const validatePassword = (password: string) => {
-    if (password.length < 6) {
-      return "Password must be at least 6 characters long";
+    if (password.length < 8) {
+      return "Password must be at least 8 characters long";
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "Password must contain at least one uppercase letter";
+    }
+    if (!/[a-z]/.test(password)) {
+      return "Password must contain at least one lowercase letter";
+    }
+    if (!/[0-9]/.test(password)) {
+      return "Password must contain at least one number";
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      return "Password must contain at least one symbol";
     }
     return null;
   };
 
   const validateStep1 = () => {
-    if (!formData.fullName.trim()) return "Full name is required";
+    if (!formData.firstName.trim()) return "First name is required";
+    if (!formData.lastName.trim()) return "Last name is required";
     if (!formData.email.trim()) return "Email is required";
     if (!/\S+@\S+\.\S+/.test(formData.email)) return "Please enter a valid email";
-    if (!formData.phone.trim()) return "Phone number is required";
     return null;
   };
 
@@ -91,17 +107,17 @@ export default function AffiliateSignupPage() {
     }
 
     setIsLoading(true);
-    setError("");
+    // Don't clear any errors - let the server action handle redirects
 
-    try {
-      // TODO: Implement affiliate signup logic
-      console.log('Affiliate signup:', formData);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Signup error:', error);
-      setError('An unexpected error occurred. Please try again.');
-      setIsLoading(false);
-    }
+    // Create FormData object for the server action
+    const formDataToSubmit = new FormData();
+    formDataToSubmit.append('firstName', formData.firstName);
+    formDataToSubmit.append('lastName', formData.lastName);
+    formDataToSubmit.append('email', formData.email);
+    formDataToSubmit.append('password', formData.password);
+
+    // Call the server action - it will redirect on success or error
+    await signupAffiliate(formDataToSubmit);
   };
 
   const nextStep = () => {
@@ -112,12 +128,20 @@ export default function AffiliateSignupPage() {
     }
     if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
+      // Only clear validation errors, not server errors
+      if (!searchParams.get('message')) {
+        setError("");
+      }
     }
   };
 
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+      // Only clear validation errors, not server errors
+      if (!searchParams.get('message')) {
+        setError("");
+      }
     }
   };
 
@@ -154,66 +178,6 @@ export default function AffiliateSignupPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-teal-50 dark:from-slate-900 dark:via-purple-900/20 dark:to-teal-900/20 relative overflow-hidden">
-      {/* Custom styles for phone input */}
-      <style jsx global>{`
-        .PhoneInput {
-          position: relative;
-        }
-        
-        .PhoneInputCountry {
-          position: absolute;
-          left: 0;
-          top: 50%;
-          transform: translateY(-50%);
-          z-index: 10;
-        }
-        
-        .PhoneInputInput {
-          padding-left: 60px !important;
-          background: transparent !important;
-          border: none !important;
-          border-bottom: 2px solid #cbd5e1 !important;
-          border-radius: 0 !important;
-          outline: none !important;
-          box-shadow: none !important;
-          font-size: 1.125rem !important;
-          color: #1e293b !important;
-          transition: border-color 0.2s !important;
-          width: 100% !important;
-          padding-top: 12px !important;
-          padding-bottom: 12px !important;
-        }
-        
-        .PhoneInputInput:focus {
-          border-bottom-color: #8b5cf6 !important;
-        }
-        
-        .dark .PhoneInputInput {
-          border-bottom-color: #475569 !important;
-          color: #f8fafc !important;
-        }
-        
-        .dark .PhoneInputInput:focus {
-          border-bottom-color: #a855f7 !important;
-        }
-        
-        .PhoneInputInput::placeholder {
-          color: #94a3b8 !important;
-        }
-        
-        .dark .PhoneInputInput::placeholder {
-          color: #64748b !important;
-        }
-        
-        .PhoneInputCountrySelectArrow {
-          border-color: #94a3b8 !important;
-        }
-        
-        .dark .PhoneInputCountrySelectArrow {
-          border-color: #64748b !important;
-        }
-      `}</style>
-
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
@@ -331,19 +295,12 @@ export default function AffiliateSignupPage() {
                   </div>
                 </div>
 
-                {/* Error Message */}
-                {error && (
-                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 backdrop-blur-sm">
-                    <p className="text-red-600 dark:text-red-400 text-sm font-medium">{error}</p>
-                  </div>
-                )}
-
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {currentStep === 1 ? (
                     <>
                       <div className="space-y-2">
-                        <label htmlFor="fullName" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                          Full Name
+                        <label htmlFor="firstName" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          First Name
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -351,11 +308,31 @@ export default function AffiliateSignupPage() {
                           </div>
                           <input
                             type="text"
-                            id="fullName"
-                            value={formData.fullName}
-                            onChange={(e) => handleInputChange("fullName", e.target.value)}
+                            id="firstName"
+                            value={formData.firstName}
+                            onChange={(e) => handleInputChange("firstName", e.target.value)}
                             className="w-full pl-10 pr-4 py-3 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition-colors text-lg"
-                            placeholder="Enter your full name"
+                            placeholder="Enter your first name"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="lastName" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          Last Name
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <User className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                          </div>
+                          <input
+                            type="text"
+                            id="lastName"
+                            value={formData.lastName}
+                            onChange={(e) => handleInputChange("lastName", e.target.value)}
+                            className="w-full pl-10 pr-4 py-3 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition-colors text-lg"
+                            placeholder="Enter your last name"
                             required
                           />
                         </div>
@@ -381,43 +358,10 @@ export default function AffiliateSignupPage() {
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <label htmlFor="phone" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                          Phone Number
-                        </label>
-                        <div className="relative">
-                          <PhoneInput
-                            value={formData.phone}
-                            onChange={handlePhoneChange}
-                            placeholder="Enter your phone number"
-                            defaultCountry="US"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="website" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                          Website (Optional)
-                        </label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Globe className="h-5 w-5 text-slate-400 dark:text-slate-500" />
-                          </div>
-                          <input
-                            type="url"
-                            id="website"
-                            value={formData.website}
-                            onChange={(e) => handleInputChange("website", e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-transparent border-b-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition-colors text-lg"
-                            placeholder="https://yourwebsite.com"
-                          />
-                        </div>
-                      </div>
-
                       <button
                         type="button"
                         onClick={nextStep}
-                        disabled={!formData.fullName || !formData.email || !formData.phone}
+                        disabled={!formData.firstName || !formData.lastName || !formData.email}
                         className="w-full flex justify-center items-center gap-2 py-3 px-6 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02]"
                       >
                         Next Step
@@ -426,6 +370,21 @@ export default function AffiliateSignupPage() {
                     </>
                   ) : (
                     <>
+                      {/* Error Message for Step 2 - More Prominent */}
+                      {error && (
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 backdrop-blur-sm mb-4">
+                          <div className="flex items-start gap-3">
+                            <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-white text-xs font-bold">!</span>
+                            </div>
+                            <div>
+                              <p className="text-red-600 dark:text-red-400 text-sm font-medium mb-1">Account Creation Failed</p>
+                              <p className="text-red-500 dark:text-red-300 text-xs">{error}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="space-y-2">
                         <label htmlFor="password" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
                           Password
@@ -452,8 +411,27 @@ export default function AffiliateSignupPage() {
                           </button>
                         </div>
                         {formData.password && (
-                          <div className={`text-xs ${formData.password.length >= 6 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                            {formData.password.length >= 6 ? '✓ Password meets minimum requirements' : '✗ Password must be at least 6 characters'}
+                          <div className="space-y-2">
+                            <div className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                              Password Requirements:
+                            </div>
+                            <div className="space-y-1">
+                              <div className={`text-xs flex items-center gap-2 ${formData.password.length >= 8 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                {formData.password.length >= 8 ? '✓' : '✗'} At least 8 characters
+                              </div>
+                              <div className={`text-xs flex items-center gap-2 ${/[A-Z]/.test(formData.password) ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                {/[A-Z]/.test(formData.password) ? '✓' : '✗'} One uppercase letter
+                              </div>
+                              <div className={`text-xs flex items-center gap-2 ${/[a-z]/.test(formData.password) ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                {/[a-z]/.test(formData.password) ? '✓' : '✗'} One lowercase letter
+                              </div>
+                              <div className={`text-xs flex items-center gap-2 ${/[0-9]/.test(formData.password) ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                {/[0-9]/.test(formData.password) ? '✓' : '✗'} One number
+                              </div>
+                              <div className={`text-xs flex items-center gap-2 ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password) ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password) ? '✓' : '✗'} One symbol
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -527,7 +505,7 @@ export default function AffiliateSignupPage() {
                           {isLoading ? (
                             <>
                               <ButtonLoader />
-                              Creating account...
+                              Creating Account...
                             </>
                           ) : (
                             <>
@@ -541,29 +519,47 @@ export default function AffiliateSignupPage() {
                   )}
                 </form>
 
-                <div className="text-center text-sm">
-                  <span className="text-slate-600 dark:text-slate-400">Already have an affiliate account? </span>
-                  <Link 
-                    href="/affiliate/login"
-                    className="text-purple-500 hover:text-purple-600 dark:text-purple-400 dark:hover:text-purple-300 font-medium transition-colors"
-                  >
-                    Sign in
-                  </Link>
-                </div>
-
-                {/* Secure Affiliate Logo */}
-                <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-                  <div className="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                    <Shield className="h-4 w-4" />
-                    <span>Secure affiliate registration</span>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-300 dark:border-slate-600" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white/80 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400">
+                      Already have an account?
+                    </span>
                   </div>
                 </div>
+
+                <Link
+                  href="/affiliate/login"
+                  className="w-full flex justify-center items-center gap-2 py-3 px-6 border border-slate-300 dark:border-slate-600 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 backdrop-blur-sm transform hover:scale-[1.02]"
+                >
+                  Sign In Instead
+                </Link>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function SignupFallback() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-teal-50 dark:from-slate-900 dark:via-purple-900/20 dark:to-teal-900/20 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+        <p className="text-slate-600 dark:text-slate-400">Loading signup form...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function AffiliateSignupPage() {
+  return (
+    <Suspense fallback={<SignupFallback />}>
+      <SignupContent />
+    </Suspense>
   );
 }

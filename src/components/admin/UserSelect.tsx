@@ -7,11 +7,11 @@ import Image from "next/image";
 
 interface User {
   id: string;
-  full_name: string;
-  email: string;
+  full_name: string | null;
+  email: string | null;
   role: string;
-  avatar_url?: string;
-  username?: string;
+  avatar_url: string | null;
+  username: string | null;
 }
 
 interface UserSelectProps {
@@ -75,7 +75,7 @@ export default function UserSelect({
   const handleUserSelect = (user: User) => {
     console.log('User selected:', user);
     setSelectedUser(user);
-    setSearchQuery(`${user.full_name} (@${user.username})`);
+    setSearchQuery(`${user.full_name || 'Unknown'} (@${user.username || 'no-username'})`);
     setShowDropdown(false);
     setUsers([]);
     
@@ -160,7 +160,7 @@ export default function UserSelect({
                 {user.avatar_url ? (
                   <Image 
                     src={user.avatar_url} 
-                    alt={user.full_name}
+                    alt={user.full_name || user.username || 'User'}
                     className="w-8 h-8 rounded-full object-cover"
                     width={32}
                     height={32}
@@ -171,7 +171,7 @@ export default function UserSelect({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-slate-900 dark:text-white truncate">
-                  {user.full_name}
+                  {user.full_name || user.username || 'Unknown User'}
                 </div>
                 <div className="text-sm text-slate-500 dark:text-slate-400 truncate">
                   {user.username && `@${user.username} • `}{user.email}

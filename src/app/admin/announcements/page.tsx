@@ -60,7 +60,7 @@ export default function AllAnnouncementsPage() {
     tags: [] as string[],
     newTag: ""
   });
-  const [selectedUserDetails, setSelectedUserDetails] = useState<{id: string, full_name: string, username: string} | null>(null);
+  const [selectedUserDetails, setSelectedUserDetails] = useState<{id: string, full_name: string | null, username: string | null} | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
@@ -724,7 +724,7 @@ export default function AllAnnouncementsPage() {
                           setSelectedUserDetails({
                             id: user.id,
                             full_name: user.full_name,
-                            username: user.username || 'unknown'
+                            username: user.username
                           });
                         }
                       }}

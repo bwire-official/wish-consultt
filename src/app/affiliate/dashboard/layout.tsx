@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from '@/lib/supabase/client';
 import { AffiliateNavbar } from "@/components/affiliate/AffiliateNavbar";
 import AffiliateSidebar from "@/components/affiliate/AffiliateSidebar";
 import AffiliatePageLoader from "@/components/affiliate/AffiliatePageLoader";
@@ -10,18 +12,67 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
+interface AffiliateProfile {
+  id: string;
+  full_name: string | null;
+  username: string | null;
+  role: string;
+  email: string | null;
+  avatar_url: string | null;
+}
+
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true); // Default to dark mode
+  const [profile, setProfile] = useState<AffiliateProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const supabase = createClient();
 
-  // Mock profile data - in real app this would come from auth
-  const mockProfile = {
-    id: "1",
-    full_name: "John Doe",
-    username: "johndoe",
-    role: "affiliate",
-    email: "john@example.com"
-  };
+  // Fetch real profile data
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          router.push('/affiliate/login');
+          return;
+        }
+
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('id, full_name, username, role, email, avatar_url')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          router.push('/affiliate/login');
+          return;
+        }
+
+        if (profileData?.role !== 'affiliate') {
+          // Redirect non-affiliates to appropriate page
+          if (profileData?.role === 'admin') {
+            router.push('/admin');
+          } else {
+            router.push('/dashboard');
+          }
+          return;
+        }
+
+        setProfile(profileData);
+      } catch (error) {
+        console.error('Profile fetch failed:', error);
+        router.push('/affiliate/login');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [router, supabase]);
 
   // Initialize theme from localStorage
   useEffect(() => {
@@ -43,6 +94,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
     localStorage.setItem('affiliate-darkMode', isDarkMode.toString());
   }, [isDarkMode]);
+
+  // Show loading state while fetching profile
+  if (loading || !profile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-teal-50 dark:from-slate-900 dark:via-purple-900/20 dark:to-teal-900/20 flex items-center justify-center">
+        <AffiliatePageLoader />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -97,12 +157,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </Head>
       
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-teal-50 dark:from-slate-900 dark:via-purple-900/20 dark:to-teal-900/20">
-        {/* Page Loader */}
-        <AffiliatePageLoader />
-        
         {/* Navbar - Fixed at top */}
         <AffiliateNavbar 
-          profile={mockProfile} 
+          profile={profile} 
           onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
           isDarkMode={isDarkMode}
           onThemeToggle={() => setIsDarkMode(!isDarkMode)}
