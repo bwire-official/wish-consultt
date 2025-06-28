@@ -47,18 +47,14 @@ async function getUsers(query: string) {
     onboarding_data,
     invited_by,
     avatar_url,
-    is_premium,
     onboarding_completed,
     country,
     date_of_birth,
     education_level,
     availability,
     experience_level,
-    languages,
-    medical_specialties,
-    timezone,
-    social_links,
-    bio
+    language,
+    timezone
   `, { count: 'exact' });
 
   if (query) {
@@ -90,7 +86,7 @@ async function getUsers(query: string) {
       onboarding_data: u.onboarding_data || null,
       invited_by: u.invited_by || null,
       avatar_url: u.avatar_url || null,
-      is_premium: u.is_premium ?? false,
+      is_premium: false, // Default value since column doesn't exist
       onboarding_completed: u.onboarding_completed ?? false,
       
       // Additional database properties
@@ -99,11 +95,8 @@ async function getUsers(query: string) {
       education_level: u.education_level || null,
       availability: u.availability || null,
       experience_level: u.experience_level || null,
-      languages: u.languages || null,
-      medical_specialties: u.medical_specialties || null,
+      language: u.language || null,
       timezone: u.timezone || null,
-      social_links: u.social_links || null,
-      bio: u.bio || null,
     } as User;
   });
   
@@ -134,11 +127,8 @@ interface User {
   education_level: string | null;
   availability: string | null;
   experience_level: string | null;
-  languages: string[] | null;
-  medical_specialties: string[] | null;
+  language: string | null;
   timezone: string | null;
-  social_links: Record<string, unknown> | null;
-  bio: string | null;
   
   // Optional properties for UI compatibility
   location?: string | null;
@@ -218,8 +208,8 @@ export default function UsersPage({ searchParams }: { searchParams?: Promise<{ q
       const matchesStatus = selectedStatus === "all" || userStatus === selectedStatus;
       const matchesRole = selectedRole === "all" || user.role === selectedRole;
       const matchesPremium = selectedPremium === "all" || 
-        (selectedPremium === "premium" && user.is_premium) ||
-        (selectedPremium === "free" && !user.is_premium);
+        (selectedPremium === "premium" && false) || // No premium users since column doesn't exist
+        (selectedPremium === "free" && true); // All users are considered free
       
       return matchesSearch && matchesStatus && matchesRole && matchesPremium;
     });
@@ -292,7 +282,7 @@ export default function UsersPage({ searchParams }: { searchParams?: Promise<{ q
           user.username,
           user.role,
           user.status || "inactive",
-          user.is_premium ? 'Yes' : 'No',
+          'No', // Default to 'No' since is_premium column doesn't exist
           new Date(user.created_at).toLocaleDateString(),
           user.courses?.enrolled || 0,
           user.phone_number || '',
@@ -328,7 +318,7 @@ export default function UsersPage({ searchParams }: { searchParams?: Promise<{ q
     },
     {
       name: "Premium Users",
-      value: users.filter(u => u.is_premium).length.toString(),
+      value: "0", // Temporary placeholder since is_premium column doesn't exist
       change: "+8.2%",
       trend: "up",
       icon: Crown,
