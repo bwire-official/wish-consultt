@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import GlobalProgressBar from "@/components/ui/GlobalProgressBar";
+import PlausibleProvider from "next-plausible";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -56,16 +57,22 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#6366f1" />
-        <script defer data-domain="wishconsult.app" src="https://plausible.io/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js"></script>
-        <script dangerouslySetInnerHTML={{
-          __html: `window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }`
-        }} />
       </head>
       <body className={inter.className} suppressHydrationWarning>
-        <Providers>
-          <GlobalProgressBar />
-          {children}
-        </Providers>
+        <PlausibleProvider 
+          domain="wishconsult.app"
+          trackFileDownloads={true}
+          trackOutboundLinks={true}
+          enabled={true}
+          hash={true}
+          taggedEvents={true}
+          pageviewProps={true}
+        >
+          <Providers>
+            <GlobalProgressBar />
+            {children}
+          </Providers>
+        </PlausibleProvider>
       </body>
     </html>
   );
