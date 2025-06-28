@@ -45,7 +45,26 @@ function AffiliateNavbar() {
   }, []);
 
   if (!mounted) {
-    return null;
+    // Return a skeleton navbar with neutral colors to prevent theme flash
+    return (
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/" className="flex items-center space-x-2 text-2xl font-bold text-slate-900 dark:text-white">
+              Wish Consult
+            </Link>
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center space-x-8">
+                <div className="w-20 h-4 bg-slate-200 rounded animate-pulse"></div>
+                <div className="w-16 h-4 bg-slate-200 rounded animate-pulse"></div>
+                <div className="w-12 h-4 bg-slate-200 rounded animate-pulse"></div>
+              </div>
+              <div className="w-8 h-8 bg-slate-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
   }
 
   const isDark = theme === "dark";
@@ -212,6 +231,46 @@ function AffiliateNavbar() {
 // Custom Affiliate Footer Component
 function AffiliateFooter() {
   const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    // Return a skeleton footer with neutral colors to prevent theme flash
+    return (
+      <footer className="bg-white/50 backdrop-blur-lg border-t border-slate-200/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="space-y-4">
+              <div className="w-32 h-6 bg-slate-200 rounded animate-pulse"></div>
+              <div className="w-full h-16 bg-slate-200 rounded animate-pulse"></div>
+            </div>
+            <div className="space-y-4">
+              <div className="w-24 h-4 bg-slate-200 rounded animate-pulse"></div>
+              <div className="space-y-2">
+                <div className="w-20 h-3 bg-slate-200 rounded animate-pulse"></div>
+                <div className="w-16 h-3 bg-slate-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="w-20 h-4 bg-slate-200 rounded animate-pulse"></div>
+              <div className="space-y-2">
+                <div className="w-16 h-3 bg-slate-200 rounded animate-pulse"></div>
+                <div className="w-14 h-3 bg-slate-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="w-28 h-4 bg-slate-200 rounded animate-pulse"></div>
+              <div className="w-full h-16 bg-slate-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    );
+  }
+
   const isDark = theme === "dark";
 
   return (

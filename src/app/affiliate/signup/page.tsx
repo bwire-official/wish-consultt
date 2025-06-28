@@ -505,7 +505,7 @@ function SignupContent() {
                           {isLoading ? (
                             <>
                               <ButtonLoader />
-                              Creating Account...
+                              Creating...
                             </>
                           ) : (
                             <>
@@ -519,23 +519,24 @@ function SignupContent() {
                   )}
                 </form>
 
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-slate-300 dark:border-slate-600" />
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white/80 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400">
-                      Already have an account?
-                    </span>
-                  </div>
+                <div className="text-center text-sm">
+                  <span className="text-slate-600 dark:text-slate-400">Already have an affiliate account? </span>
+                  <Link 
+                    href="/affiliate/login"
+                    className="text-purple-500 hover:text-purple-600 dark:text-purple-400 dark:hover:text-purple-300 font-medium transition-colors"
+                  >
+                    Sign in
+                  </Link>
                 </div>
 
-                <Link
-                  href="/affiliate/login"
-                  className="w-full flex justify-center items-center gap-2 py-3 px-6 border border-slate-300 dark:border-slate-600 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 backdrop-blur-sm transform hover:scale-[1.02]"
-                >
-                  Sign In Instead
-                </Link>
+                {/* Secure Affiliate Registration Badge */}
+                <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                    <Shield className="h-4 w-4" />
+                    <span>Secure affiliate registration</span>
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

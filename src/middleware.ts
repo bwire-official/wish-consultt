@@ -20,6 +20,7 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith('/affiliate/verify-email') ||
       pathname.startsWith('/affiliate/forgot-password') ||
       pathname === '/' ||
+      pathname === '/affiliate' ||
       pathname.startsWith('/api/')) {
     return response
   }
@@ -37,10 +38,9 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect affiliate routes (dashboard, onboarding, and main affiliate page)
+  // Protect affiliate routes (dashboard and onboarding only - landing page is public)
   if (pathname.startsWith('/affiliate/dashboard') || 
-      pathname.startsWith('/onboarding/affiliate') ||
-      pathname === '/affiliate') {
+      pathname.startsWith('/onboarding/affiliate')) {
     console.log('Affiliate protected route detected. Checking for affiliate session...');
     const { data: { user } } = await supabase.auth.getUser()
     
