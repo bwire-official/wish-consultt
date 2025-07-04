@@ -11,15 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Test API Connection
-      run: |
-        echo "Testing API connection..."
-        curl -X GET "${{ secrets.VERCEL_APP_URL }}/api/cron/test" \
-          -H "User-Agent: GitHub-Actions" \
-          -H "X-GitHub-Action: scheduled-publisher" \
-          -H "Content-Type: application/json" \
-          -v
-        
     - name: Publish Scheduled Announcements
       run: |
         echo "Publishing scheduled announcements..."
