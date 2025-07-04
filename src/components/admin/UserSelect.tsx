@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search, User, X } from "lucide-react";
-import { searchUsers } from "@/app/admin/announcements/actions";
+import { searchUsersForAnnouncements } from "@/app/admin/actions/announcements";
 import Image from "next/image";
 
 interface User {
@@ -52,10 +52,10 @@ export default function UserSelect({
 
       setIsLoading(true);
       try {
-        const data = await searchUsers(searchQuery);
-        console.log('Search results:', data);
-        if (Array.isArray(data) && data.length > 0 && data.every(u => u && typeof u === 'object' && 'id' in u && 'full_name' in u && 'email' in u && 'role' in u)) {
-          setUsers(data);
+        const { users } = await searchUsersForAnnouncements(searchQuery);
+        console.log('Search results:', users);
+        if (Array.isArray(users) && users.length > 0 && users.every(u => u && typeof u === 'object' && 'id' in u && 'full_name' in u && 'email' in u && 'role' in u)) {
+          setUsers(users);
         } else {
           setUsers([]);
         }

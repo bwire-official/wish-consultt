@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { 
-  Bell, 
   Settings, 
   LogOut,
   User,
@@ -13,8 +12,6 @@ import {
   X,
   Search,
   ChevronDown,
-  AlertCircle,
-  CheckCircle,
   HelpCircle,
   Shield,
   BarChart3,
@@ -24,6 +21,7 @@ import {
 import { useTheme } from "next-themes";
 import { ButtonLoader } from "@/components/ui/loaders";
 import { signOut } from "@/app/auth/actions/actions";
+import NotificationBell from "@/components/shared/HybridNotificationBell";
 
 interface AdminNavbarProps {
   profile: {
@@ -36,64 +34,21 @@ interface AdminNavbarProps {
   };
 }
 
-interface Notification {
-  id: string;
-  type: 'info' | 'warning' | 'success' | 'error';
-  title: string;
-  message: string;
-  time: string;
-  read: boolean;
-}
-
 export function AdminNavbar({ profile }: AdminNavbarProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   
-  const notificationsRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Mock notifications
-  const notifications: Notification[] = [
-    {
-      id: "1",
-      type: "warning",
-      title: "System Maintenance",
-      message: "Scheduled maintenance in 2 hours",
-      time: "5 min ago",
-      read: false
-    },
-    {
-      id: "2",
-      type: "success",
-      title: "New Course Published",
-      message: "Advanced Healthcare Analytics is now live",
-      time: "1 hour ago",
-      read: false
-    },
-    {
-      id: "3",
-      type: "info",
-      title: "New Affiliate Signup",
-      message: "Dr. Sarah Johnson joined the affiliate program",
-      time: "2 hours ago",
-      read: true
-    },
-    {
-      id: "4",
-      type: "error",
-      title: "Payment Failed",
-      message: "Failed to process payout for affiliate #1234",
-      time: "3 hours ago",
-      read: false
-    }
-  ];
-
-  const unreadCount = notifications.filter(n => !n.read).length;
+  // Fix hydration mismatch by only rendering theme-dependent content after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -114,9 +69,6 @@ export function AdminNavbar({ profile }: AdminNavbarProps) {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
-        setShowNotifications(false);
-      }
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setShowUserMenu(false);
       }
@@ -126,15 +78,6 @@ export function AdminNavbar({ profile }: AdminNavbarProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'success': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'warning': return <AlertCircle className="h-4 w-4 text-yellow-500" />;
-      case 'error': return <AlertCircle className="h-4 w-4 text-red-500" />;
-      default: return <Bell className="h-4 w-4 text-blue-500" />;
-    }
-  };
-
   const quickActions = [
     { name: "Create Course", href: "/admin/courses/create", icon: FileText },
     { name: "View Analytics", href: "/admin/analytics", icon: BarChart3 },
@@ -143,7 +86,7 @@ export function AdminNavbar({ profile }: AdminNavbarProps) {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg bg-white/80 dark:bg-slate-900/80 border-b border-white/20 dark:border-slate-700/50 shadow-lg">
+    <nav className="fixed top-0 left-0 right-0 z-40 backdrop-blur-lg bg-white/80 dark:bg-slate-900/80 border-b border-white/20 dark:border-slate-700/50 shadow-lg">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo/Brand */}
@@ -181,63 +124,24 @@ export function AdminNavbar({ profile }: AdminNavbarProps) {
               </button>
             </div>
 
-            {/* Theme Toggle */}
+            {/* Theme Toggle - Fixed Hydration Issue */}
             <button
               onClick={toggleTheme}
               className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-lg transition-all duration-300 backdrop-blur-sm"
             >
-              {theme === "dark" ? (
-                <Sun className="h-5 w-5" />
+              {mounted ? (
+                theme === "dark" ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )
               ) : (
-                <Moon className="h-5 w-5" />
+                <div className="h-5 w-5" />
               )}
             </button>
 
             {/* Notifications */}
-            <div className="relative" ref={notificationsRef}>
-              <button 
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-lg transition-all duration-300 backdrop-blur-sm"
-              >
-                <Bell className="h-5 w-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center shadow-lg">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </button>
-
-              {/* Notifications Dropdown */}
-              {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 backdrop-blur-lg bg-white/90 dark:bg-slate-800/90 rounded-xl shadow-xl border border-white/20 dark:border-slate-700/50 z-50">
-                  <div className="p-4 border-b border-white/20 dark:border-slate-700/50">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Notifications</h3>
-                      <button className="text-xs text-teal-600 dark:text-teal-400 hover:underline">Mark all read</button>
-                    </div>
-                  </div>
-                  <div className="max-h-96 overflow-y-auto">
-                    {notifications.map((notification) => (
-                      <div key={notification.id} className={`p-4 border-b border-white/10 dark:border-slate-700/30 hover:bg-white/30 dark:hover:bg-slate-700/50 ${!notification.read ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''}`}>
-                        <div className="flex items-start gap-3">
-                          {getNotificationIcon(notification.type)}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-slate-900 dark:text-white">{notification.title}</p>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{notification.message}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">{notification.time}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="p-3 border-t border-white/20 dark:border-slate-700/50">
-                    <Link href="/admin/notifications" className="text-sm text-teal-600 dark:text-teal-400 hover:underline">
-                      View all notifications
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
+            <NotificationBell userId={profile.id} userRole="admin" />
 
             {/* User Profile Menu */}
             <div className="relative" ref={userMenuRef}>
@@ -268,7 +172,7 @@ export function AdminNavbar({ profile }: AdminNavbarProps) {
 
               {/* User Menu Dropdown */}
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-56 backdrop-blur-lg bg-white/90 dark:bg-slate-800/90 rounded-xl shadow-xl border border-white/20 dark:border-slate-700/50 z-50">
+                <div className="absolute right-0 mt-2 w-56 backdrop-blur-lg bg-white/90 dark:bg-slate-800/90 rounded-xl shadow-xl border border-white/20 dark:border-slate-700/50 z-[9999]">
                   <div className="p-4 border-b border-white/20 dark:border-slate-700/50">
                     <div className="text-sm font-medium text-slate-900 dark:text-white">
                       {profile?.full_name || profile?.username || 'Admin'}
@@ -291,23 +195,18 @@ export function AdminNavbar({ profile }: AdminNavbarProps) {
                       Help & Support
                     </Link>
                   </div>
-                  <div className="border-t border-white/20 dark:border-slate-700/50 py-2">
+                  <div className="py-2 border-t border-white/20 dark:border-slate-700/50">
                     <button
                       onClick={handleLogout}
                       disabled={isLoggingOut}
-                      className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50/50 dark:hover:bg-red-900/30 w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50/50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                     >
                       {isLoggingOut ? (
-                        <>
-                          <ButtonLoader width={16} />
-                          Logging out...
-                        </>
+                        <ButtonLoader />
                       ) : (
-                        <>
-                          <LogOut className="h-4 w-4" />
-                          Logout
-                        </>
+                        <LogOut className="h-4 w-4" />
                       )}
+                      <span>Sign Out</span>
                     </button>
                   </div>
                 </div>
@@ -315,7 +214,7 @@ export function AdminNavbar({ profile }: AdminNavbarProps) {
             </div>
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile Right Side */}
           <div className="lg:hidden flex items-center gap-2">
             {/* Search Toggle */}
             <button
@@ -325,15 +224,22 @@ export function AdminNavbar({ profile }: AdminNavbarProps) {
               <Search className="h-5 w-5" />
             </button>
 
-            {/* Theme Toggle */}
+            {/* Notifications - Mobile */}
+            <NotificationBell userId={profile.id} userRole="admin" />
+
+            {/* Theme Toggle - Fixed Hydration Issue */}
             <button
               onClick={toggleTheme}
               className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-lg transition-all duration-300 backdrop-blur-sm"
             >
-              {theme === "dark" ? (
-                <Sun className="h-5 w-5" />
+              {mounted ? (
+                theme === "dark" ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )
               ) : (
-                <Moon className="h-5 w-5" />
+                <div className="h-5 w-5" />
               )}
             </button>
 
@@ -389,7 +295,7 @@ export function AdminNavbar({ profile }: AdminNavbarProps) {
               </div>
 
               {/* User Info */}
-              <div className="flex items-center gap-3 p-3 bg-white/30 dark:bg-slate-700/50 rounded-lg backdrop-blur-sm">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-white/30 dark:bg-slate-700/50 backdrop-blur-sm">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-r from-teal-500 to-blue-500 flex items-center justify-center shadow-lg">
                   {profile?.avatar_url ? (
                     <div 
@@ -412,38 +318,31 @@ export function AdminNavbar({ profile }: AdminNavbarProps) {
 
               {/* Mobile Menu Links */}
               <div className="space-y-1">
-                <Link href="/admin/profile" className="flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-700/50 rounded-lg">
+                <Link href="/admin/profile" className="flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-700/50 rounded-lg transition-colors">
                   <User className="h-4 w-4" />
                   Profile Settings
                 </Link>
-                <Link href="/admin/settings" className="flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-700/50 rounded-lg">
+                <Link href="/admin/settings" className="flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-700/50 rounded-lg transition-colors">
                   <Settings className="h-4 w-4" />
                   System Settings
                 </Link>
-                <Link href="/admin/help" className="flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-700/50 rounded-lg">
+                <Link href="/admin/help" className="flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-700/50 rounded-lg transition-colors">
                   <HelpCircle className="h-4 w-4" />
                   Help & Support
                 </Link>
-              </div>
-
-              {/* Logout Button */}
-              <button
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50/50 dark:hover:bg-red-900/30 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-              >
-                {isLoggingOut ? (
-                  <>
-                    <ButtonLoader width={16} />
-                    Logging out...
-                  </>
-                ) : (
-                  <>
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50/50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoggingOut ? (
+                    <ButtonLoader />
+                  ) : (
                     <LogOut className="h-4 w-4" />
-                    Logout
-                  </>
-                )}
-              </button>
+                  )}
+                  <span>Sign Out</span>
+                </button>
+              </div>
             </div>
           </div>
         )}

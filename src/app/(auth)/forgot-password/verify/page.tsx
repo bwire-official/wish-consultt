@@ -10,7 +10,15 @@ import { verifyPasswordResetCode, requestPasswordReset } from '../../../auth/act
 
 // Utility to mask email for privacy - more professional approach
 function maskEmail(email: string) {
+  if (!email || !email.includes('@')) {
+    return email; // Return as-is if not a valid email format
+  }
+  
   const [user, domain] = email.split('@');
+  
+  if (!user || !domain) {
+    return email; // Return as-is if email is malformed
+  }
   
   // For username part: show first 2 characters and last character, mask the middle
   let maskedUser;
@@ -22,8 +30,23 @@ function maskEmail(email: string) {
     maskedUser = user.slice(0, 2) + '*'.repeat(Math.max(user.length - 4, 1)) + user.slice(-2); // Show first 2 and last 2
   }
   
-  // For domain part: show first 2 characters and last character, mask the middle
-  const [domainName, tld] = domain.split('.');
+  // For domain part: handle cases where there might not be a TLD
+  if (!domain.includes('.')) {
+    // If no dot in domain, just mask the domain name
+    let maskedDomain;
+    if (domain.length <= 3) {
+      maskedDomain = domain;
+    } else {
+      maskedDomain = domain.slice(0, 2) + '*'.repeat(Math.max(domain.length - 4, 1)) + domain.slice(-2);
+    }
+    return `${maskedUser}@${maskedDomain}`;
+  }
+  
+  // Split domain properly and handle multiple dots
+  const domainParts = domain.split('.');
+  const tld = domainParts.pop(); // Get the last part as TLD
+  const domainName = domainParts.join('.'); // Join the rest back
+  
   let maskedDomain;
   if (domainName.length <= 3) {
     maskedDomain = domainName; // Show full domain if 3 characters or less

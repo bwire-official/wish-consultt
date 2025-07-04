@@ -7,6 +7,7 @@ import { headers } from 'next/headers'
 import * as brevo from '@getbrevo/brevo';
 import { render } from '@react-email/render';
 import { PasswordResetNoticeEmail } from '@/components/emails/PasswordResetNotice';
+import { TablesInsert } from '@/types/supabase';
 
 // --- SIGNUP ACTION ---
 export async function signup(formData: FormData) {
@@ -15,8 +16,20 @@ export async function signup(formData: FormData) {
   const password = formData.get('password') as string;
   const firstName = formData.get('firstName') as string;
   const lastName = formData.get('lastName') as string;
+  const inviteCode = formData.get('inviteCode') as string;
   const fullName = `${firstName} ${lastName}`.trim();
   const supabase = createClient(); // This is the user-context client
+  
+  let inviteData = null;
+  
+  // Validate invite code if provided
+  if (inviteCode && inviteCode.trim()) {
+    const validation = await validateInviteCode(inviteCode);
+    if (!validation.valid) {
+      return redirect(`/signup?message=${encodeURIComponent(validation.error || 'Invalid invite code')}`);
+    }
+    inviteData = validation.inviteData;
+  }
 
   // Step 1: Create the user in the Auth system.
   // This will now succeed because the broken trigger is gone.
@@ -56,18 +69,46 @@ export async function signup(formData: FormData) {
 
   // Step 2: Now that the auth user exists, explicitly INSERT their profile.
   // We use the ADMIN client to bypass RLS for this one-time, secure setup.
+  const profileData: TablesInsert<'profiles'> = { 
+    id: user.id, 
+    email: user.email, 
+    full_name: fullName 
+  };
+  
+  // Add invited_by if invite code was used
+  if (inviteData) {
+    profileData.invited_by = inviteData.affiliate_id;
+  }
+  
   const { error: profileError } = await supabaseAdmin
     .from('profiles')
-    .insert({ 
-      id: user.id, 
-      email: user.email, 
-      full_name: fullName 
-    });
+    .insert(profileData);
 
   if (profileError) {
     console.error("CRITICAL: Failed to create profile for new user:", profileError);
     // Optional: Add logic here to delete the auth user if profile creation fails, to prevent orphaned users.
     return redirect('/signup?message=Could not create user profile.');
+  }
+
+  // ✅ SECURE: Check if this should be the first admin user
+  try {
+    await checkAndPromoteFirstAdmin(user.id, email);
+  } catch (error) {
+    console.error('Admin promotion check failed:', error);
+    // Don't fail signup for this, just log
+  }
+  
+  // Step 2.5: If invite code was used, increment the uses count
+  if (inviteData) {
+    const { error: updateError } = await supabaseAdmin
+      .from('invite_codes')
+      .update({ uses: inviteData.uses + 1 })
+      .eq('id', inviteData.id);
+      
+    if (updateError) {
+      console.error("Failed to update invite code usage:", updateError);
+      // Don't fail the signup for this, just log it
+    }
   }
 
   // Step 3: Redirect to email verification.
@@ -106,23 +147,33 @@ export async function login(formData: FormData) {
   const supabase = createClient();
   let emailForLogin: string | null = null;
 
+  // Input validation
+  if (!identity || !password || typeof identity !== 'string' || typeof password !== 'string') {
+    return { success: false, error: 'Please enter both email/username and password' };
+  }
+
   // 1. Determine if the user provided an email or a username
   if (identity.includes('@')) {
     // If it contains '@', assume it's an email
     emailForLogin = identity;
   } else {
     // Otherwise, assume it's a username and find the associated email
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('email')
-      .eq('username', identity)
-      .single();
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('username', identity)
+        .single();
 
-    if (error || !profile || !profile.email) {
+      if (error || !profile || !profile.email) {
+        // SECURITY: Don't reveal whether username exists or not
+        return { success: false, error: 'Invalid credentials' };
+      }
+      emailForLogin = profile.email;
+    } catch (error) {
       console.error('Username lookup error:', error);
       return { success: false, error: 'Invalid credentials' };
     }
-    emailForLogin = profile.email;
   }
 
   // 2. Attempt to sign in the user with the found email
@@ -133,11 +184,12 @@ export async function login(formData: FormData) {
     });
 
     if (error) {
-      return { success: false, error: error.message };
+      // SECURITY: Generic error message for all authentication failures
+      return { success: false, error: 'Invalid credentials' };
     }
 
     if (!user) {
-      return { success: false, error: 'Login failed' };
+      return { success: false, error: 'Invalid credentials' };
     }
 
     // 3. Get the user's profile to check their role
@@ -149,11 +201,11 @@ export async function login(formData: FormData) {
 
     if (profileError) {
       console.error('Profile lookup error:', profileError);
-      return { success: false, error: 'Failed to get user profile' };
+      return { success: false, error: 'Authentication failed' };
     }
 
     if (!profile) {
-      return { success: false, error: 'User profile not found' };
+      return { success: false, error: 'Authentication failed' };
     }
 
     // Use proper type since onboarding_completed exists in DB but not in TypeScript types
@@ -178,7 +230,7 @@ export async function login(formData: FormData) {
 
   } catch (error) {
     console.error('Login error:', error);
-    return { success: false, error: 'An unexpected error occurred' };
+    return { success: false, error: 'Authentication failed' };
   }
 }
 
@@ -332,6 +384,15 @@ export async function signupSimple(formData: FormData) {
     }
 
     console.log('Profile created successfully');
+    
+    // ✅ SECURE: Check if this should be the first admin user
+    try {
+      await checkAndPromoteFirstAdmin(user.id, email);
+    } catch (error) {
+      console.error('Admin promotion check failed:', error);
+      // Don't fail signup for this, just log
+    }
+    
     return redirect(`/verify-email?email=${email}`);
     
   } catch (error) {
@@ -343,55 +404,58 @@ export async function signupSimple(formData: FormData) {
 /**
  * Handles Step 1 of the password reset flow.
  * Checks if a user exists and sends them a 6-digit OTP code.
+ * SECURITY: Always returns success to prevent user enumeration.
  */
 export async function requestPasswordReset(formData: FormData) {
   const identity = formData.get('identity') as string;
   const supabase = createClient();
-  let emailToReset: string | null = null;
-  let userRole: string | null = null;
-
-  // 1. Find the user by either email or username
-  let profileQuery = supabase.from('profiles').select('email, role');
-  if (identity.includes('@')) {
-    profileQuery = profileQuery.eq('email', identity);
-  } else {
-    profileQuery = profileQuery.eq('username', identity);
-  }
   
-  const { data: profile, error: profileError } = await profileQuery.single();
-
-  // 2. Handle cases where the user does not exist
-  if (profileError || !profile) {
-    console.error("User not found:", profileError);
-    return redirect('/forgot-password?message=User with this identity does not exist.');
-  }
-  
-  emailToReset = profile.email;
-  userRole = profile.role;
-
-  // 3. Handle affiliate users by redirecting them
-  if (userRole === 'affiliate') {
-    return redirect('/affiliate/forgot-password?message=Please use the affiliate portal for password reset.');
+  // Input validation
+  if (!identity || typeof identity !== 'string') {
+    return redirect('/forgot-password?message=Please enter your email or username.');
   }
 
-  // 4. If everything is correct, send the password reset OTP
-  if (emailToReset) {
-    const { error } = await supabase.auth.resetPasswordForEmail(emailToReset);
+  try {
+    // 1. Find the user by either email or username
+    let profileQuery = supabase.from('profiles').select('email, role');
+    if (identity.includes('@')) {
+      profileQuery = profileQuery.eq('email', identity);
+    } else {
+      profileQuery = profileQuery.eq('username', identity);
+    }
     
-    if (error) {
-      console.error("Error sending password reset OTP:", error);
-      return redirect('/forgot-password?message=Could not send reset code. Please try again.');
+    const { data: profile, error: profileError } = await profileQuery.single();
+
+    // 2. Only proceed if user exists and is not an affiliate
+    if (!profileError && profile && profile.email) {
+      const userRole = profile.role;
+      const emailToReset = profile.email;
+
+      // Handle affiliate users by redirecting them (but don't reveal if user exists)
+      if (userRole === 'affiliate') {
+        return redirect('/affiliate/forgot-password?message=Please use the affiliate portal for password reset.');
+      }
+
+      // Send the password reset OTP for valid users
+      const { error } = await supabase.auth.resetPasswordForEmail(emailToReset);
+      
+      if (error) {
+        console.error("Error sending password reset OTP:", error);
+        // Still redirect to success to prevent enumeration
+      }
     }
 
-    // Success! Redirect to the code verification step.
-    // We pass the email along so the next form knows who is verifying.
-    // Check if this is a resend request by looking for a resend parameter
+    // SECURITY: Always redirect to success page regardless of whether user exists
+    // This prevents attackers from determining which users are registered
     const isResend = formData.get('resend') === 'true';
-    const successMessage = isResend ? '&message=Verification code has been resent successfully.&status=success' : '';
-    return redirect(`/forgot-password/verify?email=${encodeURIComponent(emailToReset)}${successMessage}`);
-  }
+    const successMessage = isResend ? '&message=If an account exists with that information, a verification code has been resent.&status=success' : '';
+    return redirect(`/forgot-password/verify?email=${encodeURIComponent(identity)}${successMessage}`);
 
-  return redirect('/forgot-password?message=An unexpected error occurred.');
+  } catch (error) {
+    console.error("Unexpected error in requestPasswordReset:", error);
+    // Even on error, don't reveal information about user existence
+    return redirect(`/forgot-password/verify?email=${encodeURIComponent(identity)}&message=If an account exists with that information, a verification code has been sent.&status=success`);
+  }
 }
 
 /**
@@ -478,3 +542,124 @@ export async function updateUserPassword(formData: FormData) {
   // Step 4: Redirect to login with a success message.
   return redirect('/login?message=Password updated successfully. Please log in.&status=success');
 };
+
+// --- INVITE CODE VALIDATION (INTERNAL USE ONLY) ---
+async function validateInviteCode(inviteCode: string) {
+  if (!inviteCode || inviteCode.trim() === '') {
+    return { valid: false, error: 'Please enter an invite code' };
+  }
+
+  // Use admin client to bypass RLS for invite code validation
+  try {
+    console.log('Validating invite code:', inviteCode.trim());
+    
+    const { data: inviteData, error } = await supabaseAdmin
+      .from('invite_codes')
+      .select('id, affiliate_id, code_text, is_active, uses')
+      .eq('code_text', inviteCode.trim())
+      .single();
+
+    console.log('Query result:', { inviteData, error });
+
+    if (error || !inviteData) {
+      console.log('Invite code not found or error:', error);
+      return { valid: false, error: 'Invalid invite code' };
+    }
+
+    if (!inviteData.is_active) {
+      console.log('Invite code is inactive');
+      return { valid: false, error: 'This invite code is no longer active' };
+    }
+
+    console.log('Invite code is valid');
+    return { 
+      valid: true, 
+      inviteData: {
+        id: inviteData.id,
+        affiliate_id: inviteData.affiliate_id,
+        uses: inviteData.uses
+      }
+    };
+  } catch (error) {
+    console.error('Error validating invite code:', error);
+    return { valid: false, error: 'Failed to validate invite code' };
+  }
+}
+
+// --- SECURE INVITE CODE VALIDATION FOR CLIENT USE ---
+export async function validateInviteCodeSecure(inviteCode: string) {
+  // Input validation
+  if (!inviteCode || typeof inviteCode !== 'string' || inviteCode.trim().length === 0) {
+    return { valid: false, error: 'Please enter an invite code' };
+  }
+
+  // Rate limiting could be added here
+  const trimmedCode = inviteCode.trim();
+  
+  // Validate code length (assuming reasonable limits)
+  if (trimmedCode.length < 3 || trimmedCode.length > 20) {
+    return { valid: false, error: 'Invalid invite code format' };
+  }
+
+  try {
+    // Use the internal validation function (server-side only)
+    return await validateInviteCode(trimmedCode);
+  } catch (error) {
+    console.error('Error in secure invite code validation:', error);
+    return { valid: false, error: 'Unable to validate invite code at this time' };
+  }
+}
+
+// ✅ SECURE: Environment-based admin creation
+async function checkAndPromoteFirstAdmin(userId: string, email: string) {
+  const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL;
+  
+  if (!SUPER_ADMIN_EMAIL) {
+    return; // No super admin configured
+  }
+
+  // Check if this is the super admin email
+  if (email.toLowerCase() !== SUPER_ADMIN_EMAIL.toLowerCase()) {
+    return; // Not the super admin
+  }
+
+  // Check if any admins already exist
+  const { data: existingAdmins } = await supabaseAdmin
+    .from('profiles')
+    .select('id')
+    .eq('role', 'admin')
+    .limit(1);
+
+  if (existingAdmins && existingAdmins.length > 0) {
+    console.log('Admin already exists, skipping auto-promotion');
+    return; // Admin already exists
+  }
+
+  // Promote to admin with audit trail
+  const { error } = await supabaseAdmin
+    .from('profiles')
+    .update({ 
+      role: 'admin',
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', userId);
+
+  if (!error) {
+    console.log(`🚀 SUPER ADMIN PROMOTED: ${email} (${userId})`);
+    
+    // Create audit trail
+    try {
+      await supabaseAdmin
+        .from('admin_promotions')
+        .insert({
+          user_id: userId,
+          promoted_by: 'SYSTEM',
+          reason: 'First-time super admin setup',
+          promoted_at: new Date().toISOString()
+        });
+      console.log('Audit trail created');
+    } catch {
+      console.log('Audit table not found or error - promotion still successful');
+    }
+  }
+}

@@ -15,6 +15,19 @@ export default async function DashboardLayout({
     redirect('/login');
   }
 
+  // SECURITY: Check user role server-side for student routes
+  if (profile.role !== 'student') {
+    console.log(`NON-STUDENT USER (${profile.role}) attempted student dashboard access. Redirecting to appropriate dashboard.`);
+    
+    if (profile.role === 'admin') {
+      redirect('/admin');
+    } else if (profile.role === 'affiliate') {
+      redirect('/affiliate/dashboard');
+    } else {
+      redirect('/login');
+    }
+  }
+
   // If onboarding is not completed, redirect to onboarding
   if (!profile.onboarding_completed) {
     redirect('/onboarding/student');

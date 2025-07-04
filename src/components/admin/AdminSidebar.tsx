@@ -13,7 +13,6 @@ import {
   Settings,
   BarChart3,
   FileText,
-  Bell,
   ChevronDown,
   Menu,
   X,
@@ -22,7 +21,9 @@ import {
   TrendingUp,
   Award,
   Calendar,
-  HelpCircle
+  HelpCircle,
+  Megaphone,
+  Plus
 } from "lucide-react";
 
 interface NavItem {
@@ -67,6 +68,15 @@ export function AdminSidebar() {
       ]
     },
     {
+      name: "Announcements",
+      href: "/admin/announcements",
+      icon: Megaphone,
+      children: [
+        { name: "View Announcements", href: "/admin/announcements", icon: Megaphone },
+        { name: "Create Announcement", href: "/admin/announcements/create", icon: Plus },
+      ]
+    },
+    {
       name: "Feedback & Reviews",
       href: "/admin/feedback",
       icon: MessageSquare,
@@ -90,7 +100,6 @@ export function AdminSidebar() {
       href: "/admin/content",
       icon: FileText,
       children: [
-        { name: "Announcements", href: "/admin/announcements", icon: Bell },
         { name: "Blog Posts", href: "/admin/blog", icon: FileText },
         { name: "Resources", href: "/admin/resources", icon: Database },
         { name: "Media Library", href: "/admin/media", icon: FileText },
@@ -190,13 +199,13 @@ export function AdminSidebar() {
       {/* Mobile Overlay */}
       {isMobileOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-20 lg:hidden"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`fixed left-0 top-16 h-full backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border-r border-white/20 dark:border-slate-700/50 transition-all duration-300 z-50 shadow-xl ${
+      <div className={`fixed left-0 top-16 h-full backdrop-blur-lg bg-white/80 dark:bg-slate-800/80 border-r border-white/20 dark:border-slate-700/50 transition-all duration-300 z-30 shadow-xl ${
         isCollapsed ? 'w-16' : 'w-64'
       } ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         

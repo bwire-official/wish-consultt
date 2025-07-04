@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search, User, X } from "lucide-react";
-import { supabaseAdmin } from "@/lib/supabase/service";
+import { searchUsersForSelector } from "@/app/admin/actions/users";
 import Image from "next/image";
 
 interface User {
@@ -44,26 +44,19 @@ export default function UserSelector({
 
       setIsLoading(true);
       try {
-        const { data, error } = await supabaseAdmin
-          .from('profiles')
-          .select('id, full_name, email, role, avatar_url')
-          .or(`full_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`)
-          .limit(10);
+        const result = await searchUsersForSelector(searchQuery);
 
-        if (error) {
-          console.error('Error searching users:', error);
-          setUsers([]);
+        if (result.users) {
+          setUsers(result.users);
+          setShowDropdown(result.users.length > 0);
         } else {
-          if (Array.isArray(data) && data.length > 0 && data.every(u => u && typeof u === 'object' && 'id' in u && 'full_name' in u && 'email' in u && 'role' in u)) {
-            setUsers(data);
-          } else {
-            setUsers([]);
-          }
-          setShowDropdown(true);
+          setUsers([]);
+          setShowDropdown(false);
         }
       } catch (error) {
         console.error('Error searching users:', error);
         setUsers([]);
+        setShowDropdown(false);
       } finally {
         setIsLoading(false);
       }

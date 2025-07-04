@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  Bell, 
   Settings, 
   LogOut,
   User,
@@ -19,6 +18,7 @@ import {
 import { useTheme } from "next-themes";
 import { ButtonLoader } from "@/components/ui/loaders";
 import { signOut } from "@/app/auth/actions/actions";
+import NotificationBell from "@/components/shared/HybridNotificationBell";
 
 interface DashboardNavbarProps {
   profile: {
@@ -118,10 +118,7 @@ export function DashboardNavbar({ profile }: DashboardNavbarProps) {
             </button>
 
             {/* Notifications */}
-            <button className="relative p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all duration-300">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-            </button>
+            <NotificationBell userId={profile.id} userRole="student" />
 
             {/* Logout Button */}
             <button
@@ -182,10 +179,7 @@ export function DashboardNavbar({ profile }: DashboardNavbarProps) {
             </button>
 
             {/* Notifications */}
-            <button className="relative p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all duration-300">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-            </button>
+            <NotificationBell userId={profile.id} userRole="student" />
 
             {/* Mobile menu button */}
             <button

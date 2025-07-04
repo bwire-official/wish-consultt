@@ -51,6 +51,7 @@ export default function AnnouncementsDisplay() {
               ...a,
               id: typeof a.id === 'string' ? parseInt(a.id, 10) : a.id,
               content: a.content || '',
+              status: typeof a.status === 'string' ? a.status : (a.status == null ? '' : String(a.status)),
               priority: String(a.priority),
               target_audience: String(a.target_audience),
               created_at: a.created_at || null,
