@@ -1001,7 +1001,7 @@ export default function UsersPage({ searchParams }: { searchParams?: Promise<{ q
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                           Account Status
                         </label>
-                      <div className="relative"> //
+                      <div className="relative">
                           <select
                             defaultValue={selectedUser.status}
                             className="w-full px-0 py-3 bg-transparent border-0 border-b-2 border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white focus:ring-0 focus:border-teal-500 dark:focus:border-teal-400 focus:outline-none transition-all duration-300 appearance-none"

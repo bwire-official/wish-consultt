@@ -22,6 +22,21 @@ export async function middleware(request: NextRequest) {
       pathname === '/' ||
       pathname === '/affiliate' ||
       pathname.startsWith('/api/')) {
+    
+    // SECURITY: Special protection for cron endpoint
+    if (pathname === '/api/cron/publish-scheduled') {
+      const userAgent = request.headers.get('user-agent') || ''
+      const isVercelCron = userAgent.includes('Vercel') || 
+                          request.headers.get('x-vercel-cron') === 'true' ||
+                          request.headers.get('x-vercel-internal') === 'true'
+      
+      // In production, block non-Vercel calls to cron endpoint
+      if (process.env.NODE_ENV === 'production' && !isVercelCron) {
+        console.error('❌ Unauthorized access attempt to cron endpoint from middleware')
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    }
+    
     return response
   }
   

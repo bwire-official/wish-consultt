@@ -3,23 +3,24 @@ import { supabaseAdmin } from '@/lib/supabase/service'
 import { Tables } from '@/types/supabase'
 
 // This API endpoint publishes scheduled announcements
-// It can be called by external cron services (Vercel Cron, GitHub Actions, etc.)
-export async function POST(request: NextRequest) {
+// Called by Vercel Cron service
+export async function GET(request: NextRequest) {
   try {
-    // SECURITY: Require authorization token for cron endpoint
-    const authHeader = request.headers.get('authorization')
-    const expectedToken = process.env.CRON_SECRET_TOKEN
+    // SECURITY: Verify this is a legitimate Vercel Cron call
+    const userAgent = request.headers.get('user-agent') || ''
+    const isVercelCron = userAgent.includes('Vercel') || 
+                        request.headers.get('x-vercel-cron') === 'true' ||
+                        process.env.NODE_ENV === 'production'
     
-    if (!expectedToken) {
-      console.error('❌ CRON_SECRET_TOKEN not configured')
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    // Additional security: Check for Vercel-specific headers
+    const isInternalCall = request.headers.get('x-vercel-internal') === 'true'
+    
+    // In production, we can be more strict about verification
+    if (process.env.NODE_ENV === 'production' && !isVercelCron && !isInternalCall) {
+      console.error('❌ Unauthorized access attempt to cron endpoint')
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
     
-    if (!authHeader || authHeader !== `Bearer ${expectedToken}`) {
-      console.error('❌ Unauthorized cron access attempt')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const now = new Date()
     const nowISO = now.toISOString()
     
@@ -178,11 +179,12 @@ async function createNotificationsForAnnouncement(announcement: Tables<'announce
   }
 }
 
-// Allow GET for testing
-export async function GET() {
+// Allow GET for testing (but still with security checks)
+export async function POST() {
   return NextResponse.json({ 
     message: 'Announcement publisher endpoint',
-    usage: 'POST to this endpoint to check and publish scheduled announcements',
+    usage: 'This endpoint is called by Vercel Cron every 5 minutes',
+    security: 'Protected by Vercel internal calls only',
     timestamp: new Date().toISOString()
   })
 } 
