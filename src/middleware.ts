@@ -30,8 +30,12 @@ export async function middleware(request: NextRequest) {
                           request.headers.get('x-vercel-cron') === 'true' ||
                           request.headers.get('x-vercel-internal') === 'true'
       
-      // In production, block non-Vercel calls to cron endpoint
-      if (process.env.NODE_ENV === 'production' && !isVercelCron) {
+      // Allow GitHub Actions requests
+      const isGitHubActions = userAgent.includes('GitHub-Actions') ||
+                             request.headers.get('x-github-action') === 'scheduled-publisher'
+      
+      // In production, block non-authorized calls to cron endpoint
+      if (process.env.NODE_ENV === 'production' && !isVercelCron && !isGitHubActions) {
         console.error('❌ Unauthorized access attempt to cron endpoint from middleware')
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
